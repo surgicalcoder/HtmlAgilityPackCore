@@ -1,3 +1,5 @@
+using System;
+
 namespace HtmlAgilityPackCore
 {
     /// <summary>
@@ -10,8 +12,8 @@ namespace HtmlAgilityPackCore
         private HtmlParseErrorCode _code;
         private int _line;
         private int _linePosition;
-        private string _reason;
-        private string _sourceText;
+        private string _reason; // TODO
+        private ReadOnlyMemory<char> _sourceText;
         private int _streamPosition;
 
         #endregion
@@ -23,7 +25,7 @@ namespace HtmlAgilityPackCore
             int line,
             int linePosition,
             int streamPosition,
-            string sourceText,
+            ReadOnlyMemory<char> sourceText,
             string reason)
         {
             _code = code;
@@ -75,7 +77,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         public string SourceText
         {
-            get { return _sourceText; }
+            get { return _sourceText.ToString(); }
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace HtmlAgilityPackCore
     {
         #region Fields
 
-        private string _text;
+        private ReadOnlyMemory<char> _text;
 
         #endregion
 
@@ -28,7 +28,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the HTML between the start and end tags of the object. In the case of a text node, it is equals to OuterHtml.
         /// </summary>
-        public override string InnerHtml
+        public override ReadOnlyMemory<char> InnerHtml
         {
             get { return OuterHtml; }
             set { _text = value; }
@@ -41,7 +41,7 @@ namespace HtmlAgilityPackCore
         {
             get
             {
-                if (_text == null)
+                if (_text.IsEmpty)
                 {
                     return base.OuterHtml;
                 }
@@ -53,11 +53,11 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the text of the node.
         /// </summary>
-        public string Text
+        public ReadOnlyMemory<char> Text
         {
             get
             {
-                if (_text == null)
+                if (_text.IsEmpty)
                 {
                     return base.OuterHtml;
                 }

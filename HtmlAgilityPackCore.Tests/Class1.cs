@@ -28,7 +28,7 @@ namespace HtmlAgilityPackCore.Tests
             
             HtmlDocument docu = new HtmlDocument();
             docu.LoadHtml(b64Decoded).Wait();
-            Assert.AreEqual("#1342590", docu.DocumentNode.SelectSingleNode("/html/body/div[2]/div[2]/div[2]/div/div/div[2]/p/strong").InnerText);
+            Assert.AreEqual("#1342590", docu.DocumentNode.SelectSingleNode("/html/body/div[2]/div[2]/div[2]/div/div/div[2]/p/strong").InnerText.ToString());
         }
     }
 }

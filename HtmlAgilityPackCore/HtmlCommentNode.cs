@@ -1,3 +1,5 @@
+using System;
+
 namespace HtmlAgilityPackCore
 {
     /// <summary>
@@ -7,7 +9,7 @@ namespace HtmlAgilityPackCore
     {
         #region Fields
 
-        private string _comment;
+        private ReadOnlyMemory<char> _comment;
 
         #endregion
 
@@ -26,11 +28,11 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the comment text of the node.
         /// </summary>
-        public string Comment
+        public ReadOnlyMemory<char> Comment
         {
             get
             {
-                if (_comment == null)
+                if (_comment.IsEmpty)
                 {
                     return base.InnerHtml;
                 }
@@ -43,11 +45,11 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the HTML between the start and end tags of the object. In the case of a text node, it is equals to OuterHtml.
         /// </summary>
-        public override string InnerHtml
+        public override ReadOnlyMemory<char> InnerHtml
         {
             get
             {
-                if (_comment == null)
+                if (_comment.IsEmpty)
                 {
                     return base.InnerHtml;
                 }
@@ -60,16 +62,16 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the object and its content in HTML.
         /// </summary>
-        public override string OuterHtml
+        public override ReadOnlyMemory<char> OuterHtml
         {
             get
             {
-                if (_comment == null)
+                if (_comment.IsEmpty)
                 {
                     return base.OuterHtml;
                 }
 
-                return "<!--" + _comment + "-->";
+                return $"<!--{_comment}-->".AsMemory();
             }
         }
 

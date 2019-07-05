@@ -28,7 +28,7 @@ namespace HtmlAgilityPackCore
 		internal HtmlNode _endnode;
 
 		private bool _changed;
-		internal string _innerhtml;
+		internal ReadOnlyMemory<char> _innerhtml;
 		internal int _innerlength;
 		internal int _innerstartindex;
 		internal int _line;
@@ -333,7 +333,7 @@ namespace HtmlAgilityPackCore
 		/// <summary>
 		/// Gets or Sets the HTML between the start and end tags of the object.
 		/// </summary>
-		public virtual string InnerHtml
+		public virtual ReadOnlyMemory<char> InnerHtml
 		{
 			get
 			{
@@ -343,13 +343,13 @@ namespace HtmlAgilityPackCore
 					return _innerhtml;
 				}
 
-				if (_innerhtml != null)
+				if (!_innerhtml.IsEmpty)
 					return _innerhtml;
 
 				if (_innerstartindex < 0 || _innerlength < 0)
-					return string.Empty;
+					return ReadOnlyMemory<char>.Empty;
 
-				return _ownerdocument.Text.Slice(_innerstartindex, _innerlength).ToString();
+				return _ownerdocument.Text.Slice(_innerstartindex, _innerlength);
 			}
 			set
 			{
@@ -364,7 +364,7 @@ namespace HtmlAgilityPackCore
 		/// <summary>
 		/// Gets or Sets the text between the start and end tags of the object.
 		/// </summary>
-		public virtual string InnerText
+		public virtual ReadOnlyMemory<char> InnerText
 		{
 			get
 			{
@@ -374,7 +374,7 @@ namespace HtmlAgilityPackCore
 					{
 						StringBuilder sb = new StringBuilder();
 						AppendInnerText(sb);
-						return sb.ToString();
+						return sb.ToString().AsMemory();
 					}
 
 					return GetCurrentNodeText();
@@ -385,23 +385,26 @@ namespace HtmlAgilityPackCore
 
 				// Don't display comment or comment child nodes
 				if (_nodetype == HtmlNodeType.Comment)
-					return "";
+					return ReadOnlyMemory<char>.Empty;
 
 				// note: right now, this method is *slow*, because we recompute everything.
 				// it could be optimized like innerhtml
 				if (!HasChildNodes)
-					return string.Empty;
+					return ReadOnlyMemory<char>.Empty;
 
-				string s = null;
-				foreach (HtmlNode node in ChildNodes)
-					s += node.InnerText;
-				return s;
+                StringBuilder builder = new StringBuilder();
+                
+				//string s = null;
+                foreach (HtmlNode node in ChildNodes)
+                    builder.Append(node.InnerText.ToString());
+					
+				return builder.ToString().AsMemory();
 			}
 		}
 
         /// <summary>Gets direct inner text.</summary>
         /// <returns>The direct inner text.</returns>
-		public virtual string GetDirectInnerText()
+		public virtual ReadOnlyMemory<char> GetDirectInnerText()
 		{
 			if (!_ownerdocument.BackwardCompatibility)
 			{
@@ -409,7 +412,7 @@ namespace HtmlAgilityPackCore
 				{
 					StringBuilder sb = new StringBuilder();
 					AppendDirectInnerText(sb);
-					return sb.ToString();
+					return sb.ToString().AsMemory();
 				}
 
 				return GetCurrentNodeText();
@@ -420,40 +423,40 @@ namespace HtmlAgilityPackCore
 
 			// Don't display comment or comment child nodes
 			if (_nodetype == HtmlNodeType.Comment)
-				return "";
+				return ReadOnlyMemory<char>.Empty;
 
 			if (!HasChildNodes)
-				return string.Empty;
+				return ReadOnlyMemory<char>.Empty;
 
-			string s = null;
+			StringBuilder builder = new StringBuilder();
             foreach (HtmlNode node in ChildNodes)
             {
                 if (node._nodetype == HtmlNodeType.Text)
                 {
-                    s += ((HtmlTextNode)node).Text;
+                    builder.Append(((HtmlTextNode) node).Text.ToString());
                 }
             }
-	
-			return s;
-	 
-		}
 
-		internal string GetCurrentNodeText()
+            return builder.ToString().AsMemory();
+
+        }
+
+		internal ReadOnlyMemory<char> GetCurrentNodeText()
 		{
 			if (_nodetype == HtmlNodeType.Text)
 			{
-				string s = ((HtmlTextNode) this).Text;
+				var s = ((HtmlTextNode) this).Text;
 
 				if (ParentNode.Name != "pre")
 				{
 					// Make some test...
-					s = s.Replace("\n", "").Replace("\r", "").Replace("\t", "");
+					s = s.ToString().Replace("\n", "").Replace("\r", "").Replace("\t", "").AsMemory(); // TODO
 				}
 
 				return s;
 			}
 
-			return "";
+			return ReadOnlyMemory<char>.Empty;
 		}
 
 		internal void AppendDirectInnerText(StringBuilder sb)
@@ -1350,9 +1353,9 @@ namespace HtmlAgilityPackCore
 				throw new ArgumentException(HtmlDocument.HtmlExceptionRefNotChild);
 			}
 
-			if (_childnodes != null) _childnodes.Insert(index + 1, newChild);
+            _childnodes?.Insert(index + 1, newChild);
 
-			_ownerdocument.SetIdForNode(newChild, newChild.GetId());
+            _ownerdocument.SetIdForNode(newChild, newChild.GetId());
 			SetChildNodesId(newChild);
 			SetChanged();
 			return newChild;
@@ -1393,9 +1396,9 @@ namespace HtmlAgilityPackCore
 				throw new ArgumentException(HtmlDocument.HtmlExceptionRefNotChild);
 			}
 
-			if (_childnodes != null) _childnodes.Insert(index, newChild);
+            _childnodes?.Insert(index, newChild);
 
-			_ownerdocument.SetIdForNode(newChild, newChild.GetId());
+            _ownerdocument.SetIdForNode(newChild, newChild.GetId());
 			SetChildNodesId(newChild);
 			SetChanged();
 			return newChild;
@@ -1599,9 +1602,9 @@ namespace HtmlAgilityPackCore
 				throw new ArgumentException(HtmlDocument.HtmlExceptionRefNotChild);
 			}
 
-			if (_childnodes != null) _childnodes.Replace(index, newChild);
+            _childnodes?.Replace(index, newChild);
 
-			_ownerdocument.SetIdForNode(null, oldChild.GetId());
+            _ownerdocument.SetIdForNode(null, oldChild.GetId());
 			RemoveAllIDforNode(oldChild);
 
 			_ownerdocument.SetIdForNode(newChild, newChild.GetId());
@@ -1680,11 +1683,11 @@ namespace HtmlAgilityPackCore
 			switch (_nodetype)
 			{
 				case HtmlNodeType.Comment:
-					html = ((HtmlCommentNode) this).Comment;
+					html = ((HtmlCommentNode) this).Comment.ToString(); // TODO
 					if (_ownerdocument.OptionOutputAsXml)
 					{
 						var commentNode = (HtmlCommentNode) this;
-						if (!_ownerdocument.BackwardCompatibility && commentNode.Comment.ToLowerInvariant().StartsWith("<!doctype"))
+						if (!_ownerdocument.BackwardCompatibility && commentNode.Comment.ToString().ToLowerInvariant().StartsWith("<!doctype"))
 						{
 							outText.Write(commentNode.Comment);
 						}
@@ -1746,7 +1749,7 @@ namespace HtmlAgilityPackCore
 					break;
 
 				case HtmlNodeType.Text:
-					html = ((HtmlTextNode) this).Text;
+					html = ((HtmlTextNode) this).Text.ToString(); // TODO
 					outText.Write(_ownerdocument.OptionOutputAsXml ? HtmlDocument.HtmlEncodeWithCompatibility(html, _ownerdocument.BackwardCompatibility) : html);
 					break;
 
@@ -1865,7 +1868,7 @@ namespace HtmlAgilityPackCore
 					break;
 
 				case HtmlNodeType.Text:
-					string html = ((HtmlTextNode) this).Text;
+					string html = ((HtmlTextNode) this).Text.ToString(); // TODO
 					writer.WriteString(html);
 					break;
 
@@ -1937,17 +1940,15 @@ namespace HtmlAgilityPackCore
 
 		private void UpdateHtml()
 		{
-			_innerhtml = WriteContentTo();
-			_outerhtml = WriteTo().AsMemory();
+			_innerhtml = WriteContentTo().AsMemory(); // TODO
+			_outerhtml = WriteTo().AsMemory(); // TODO
 			_changed = false;
 		}
 
 		internal static string GetXmlComment(HtmlCommentNode comment)
-		{
-			string s = comment.Comment;
-			s = s.Substring(4, s.Length - 7).Replace("--", " - -");
-			return s;
-		}
+        {
+            return comment.Comment.Slice(4, comment.Comment.Length - 7).ToString().Replace("--", " - -");
+        }
 
 		internal static void WriteAttributes(XmlWriter writer, HtmlNode node)
 		{

@@ -5,7 +5,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using AI4E.Utils.Memory;
 using NUnit.Framework;
+using MemoryExtensions = AI4E.Utils.Memory.MemoryExtensions;
 
 namespace HtmlAgilityPackCore.Tests
 {
@@ -156,7 +158,7 @@ namespace HtmlAgilityPackCore.Tests
                 Assert.IsNull(divs);
 
                 HtmlNode ta = doc.DocumentNode.SelectSingleNode("//textarea");
-                Assert.IsTrue(ta.InnerHtml.Contains("div"));
+                Assert.IsTrue(ta.InnerHtml.ToString().Contains("div"));
             }
         }
 
@@ -201,8 +203,8 @@ namespace HtmlAgilityPackCore.Tests
         public void CreateTextNodeWithText()
         {
             var doc = new HtmlDocument();
-            var a = doc.CreateTextNode("something");
-            Assert.AreEqual("something", a.InnerText);
+            var a = doc.CreateTextNode("something".AsMemory());
+            Assert.AreEqual("something", a.InnerText.ToString());
             Assert.AreEqual(a.NodeType, HtmlNodeType.Text);
         }
 
@@ -240,12 +242,12 @@ namespace HtmlAgilityPackCore.Tests
         public void TestParseSaveParse()
         {
             var doc = GetMshomeDocument();
-            var doc1desc = doc.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+            var doc1desc = doc.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText.ToString())).ToList();
             doc.Save(_contentDirectory + "testsaveparse.html");
 
             var doc2 = new HtmlDocument();
             doc2.Load(_contentDirectory + "testsaveparse.html").Wait();
-            var doc2desc = doc2.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+            var doc2desc = doc2.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText.ToString())).ToList();
             Assert.AreEqual(doc1desc.Count, doc2desc.Count);
             //for(var i=0; i< doc1desc.Count;i++)
             //{
@@ -376,7 +378,7 @@ namespace HtmlAgilityPackCore.Tests
             var doc = new HtmlDocument();
             doc.LoadHtml(html).Wait();
 
-            Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
+            Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -387,7 +389,7 @@ namespace HtmlAgilityPackCore.Tests
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html).Wait();
 
-                Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
+                Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml.ToString());
             }
 
             {
@@ -395,7 +397,7 @@ namespace HtmlAgilityPackCore.Tests
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html).Wait();
 
-                Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
+                Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml.ToString());
             }
         }
 
@@ -413,7 +415,7 @@ namespace HtmlAgilityPackCore.Tests
 
             h1Node.AddClass("input");
 
-            Assert.AreEqual(h1Node.OuterHtml, output);
+            Assert.AreEqual(h1Node.OuterHtml.ToString(), output);
         }
 
         [Test]
@@ -430,7 +432,7 @@ namespace HtmlAgilityPackCore.Tests
 
             h1Node.RemoveClass("input");
 
-            Assert.AreEqual(h1Node.OuterHtml, output);
+            Assert.AreEqual(h1Node.OuterHtml.ToString(), output);
         }
 
         [Test]
@@ -447,7 +449,7 @@ namespace HtmlAgilityPackCore.Tests
 
             h1Node.ReplaceClass("important", "input");
 
-            Assert.AreEqual(h1Node.OuterHtml, output);
+            Assert.AreEqual(h1Node.OuterHtml.ToString(), output);
         }
 
         [Test]
@@ -471,12 +473,12 @@ namespace HtmlAgilityPackCore.Tests
             var resultList = doc.DocumentNode.SelectNodes("//div");
             Assert.AreEqual(2, resultList.Count);
             resultList.First().Remove();
-            Assert.AreEqual("<html><head></head><body><div>some bolded<b>text</b></div></body></html>", doc.DocumentNode.OuterHtml);
+            Assert.AreEqual("<html><head></head><body><div>some bolded<b>text</b></div></body></html>", doc.DocumentNode.OuterHtml.ToString());
             var resultList2 = doc.DocumentNode.SelectNodes("//div");
             Assert.AreEqual(1, resultList2.Count);
             resultList2.First().Remove();
             // <div>some bolded<b>text</b></div> should have been removed
-            Assert.AreEqual("<html><head></head><body></body></html>", doc.DocumentNode.OuterHtml);
+            Assert.AreEqual("<html><head></head><body></body></html>", doc.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -601,9 +603,9 @@ namespace HtmlAgilityPackCore.Tests
 
             HtmlNode node3 = HtmlNode.CreateNode(@"   <p>text</p>   ");
 
-            Assert.AreEqual(output, node1.OuterHtml);
-            Assert.AreEqual(output, node2.OuterHtml);
-            Assert.AreEqual(output, node3.OuterHtml);
+            Assert.AreEqual(output, node1.OuterHtml.ToString());
+            Assert.AreEqual(output, node2.OuterHtml.ToString());
+            Assert.AreEqual(output, node3.OuterHtml.ToString());
 
             try
             {
@@ -615,7 +617,7 @@ namespace HtmlAgilityPackCore.Tests
             }
 
             HtmlNode node5 = HtmlNode.CreateNode(@"/r/n");
-            Assert.AreEqual("/r/n", node5.OuterHtml);
+            Assert.AreEqual("/r/n", node5.OuterHtml.ToString());
         }
 
         [Test]
@@ -627,7 +629,7 @@ namespace HtmlAgilityPackCore.Tests
             doc.OptionFixNestedTags = true;
             doc.Load(new StringReader(html)).Wait();
 
-            Assert.AreEqual(doc.DocumentNode.OuterHtml, html);
+            Assert.AreEqual(doc.DocumentNode.OuterHtml.ToString(), html);
         }
 
         [Test]
@@ -637,7 +639,7 @@ namespace HtmlAgilityPackCore.Tests
             var document = new HtmlDocument();
             document.LoadHtml(html).Wait();
             var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
-            Assert.AreEqual(html, document.DocumentNode.OuterHtml);
+            Assert.AreEqual(html, document.DocumentNode.OuterHtml.ToString());
             Assert.AreEqual(1, result.Count());
         }
 
@@ -648,7 +650,7 @@ namespace HtmlAgilityPackCore.Tests
             var document = new HtmlDocument();
             document.LoadHtml(html).Wait();
             var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
-            Assert.AreEqual(html, document.DocumentNode.OuterHtml);
+            Assert.AreEqual(html, document.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -661,7 +663,7 @@ namespace HtmlAgilityPackCore.Tests
                 var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
 
                 // TODO: Fix issue with last "dd"
-                Assert.AreEqual(html + "</dd>", document.DocumentNode.OuterHtml);
+                Assert.AreEqual(html + "</dd>", document.DocumentNode.OuterHtml.ToString());
             }
 
 
@@ -671,7 +673,7 @@ namespace HtmlAgilityPackCore.Tests
                 document.LoadHtml(html).Wait();
                 var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
 
-                Assert.AreEqual(html, document.DocumentNode.OuterHtml);
+                Assert.AreEqual(html, document.DocumentNode.OuterHtml.ToString());
             }
         }
 
@@ -689,7 +691,7 @@ namespace HtmlAgilityPackCore.Tests
             var document = new HtmlDocument();
             document.LoadHtml("<p><!-- comment 1 -->Expected <!-- comment 2 -->value</p>").Wait();
 
-            Assert.AreEqual("Expected value", document.DocumentNode.FirstChild.InnerText);
+            Assert.AreEqual("Expected value", document.DocumentNode.FirstChild.InnerText.ToString());
         }
 
         [Test]
@@ -701,7 +703,7 @@ namespace HtmlAgilityPackCore.Tests
             var doc = new HtmlDocument();
             doc.LoadHtml(inHtml).Wait();
 
-            Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml);
+            Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -711,7 +713,7 @@ namespace HtmlAgilityPackCore.Tests
             var expectedHtml = "<a><a></a>";
             var doc = new HtmlDocument();
             doc.LoadHtml(inHtml).Wait();
-            Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml);
+            Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -734,7 +736,7 @@ namespace HtmlAgilityPackCore.Tests
             var doc = new HtmlDocument() {BackwardCompatibility = false};
             doc.LoadHtml(inHtml).Wait();
 
-            Assert.AreEqual(expectedHtml, doc.DocumentNode.InnerText);
+            Assert.AreEqual(expectedHtml, doc.DocumentNode.InnerText.ToString());
         }
 
         [Test]
@@ -745,7 +747,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "<select><option>Select a cell</option><option>C1</option><option value='\"c2\"'></option></select>";
             var document = new HtmlDocument();
             document.LoadHtml(html).Wait();
-            Assert.AreEqual(output, document.DocumentNode.OuterHtml);
+            Assert.AreEqual(output, document.DocumentNode.OuterHtml.ToString());
         }
 
         [Test]
@@ -784,6 +786,20 @@ namespace HtmlAgilityPackCore.Tests
 
         }
 
+
+        public class Equa : IEqualityComparer<char>
+        {
+            public bool Equals(char x, char y)
+            {
+                return x.Equals(y);
+            }
+
+            public int GetHashCode(char obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
         [Test]
         public void CompareLowerCulture()
         {
@@ -805,8 +821,13 @@ namespace HtmlAgilityPackCore.Tests
             var s = doc2.DocumentNode.OuterHtml;
 
             HtmlNode node2 = doc2.DocumentNode.SelectSingleNode("//div[@id='mainContents']/h2");
-            if (node1?.InnerHtml == node2?.InnerHtml)
-                Assert.AreEqual(node1?.InnerHtml, node2?.InnerHtml);
+
+#pragma warning disable 618
+            if (node1.InnerHtml.SequenceEqual<char>(node2.InnerHtml, new Equa()))
+#pragma warning restore 618
+            {
+                Assert.AreEqual(node1?.InnerHtml.ToString(), node2?.InnerHtml.ToString());
+            }
             Assert.AreEqual(0, doc2.DocumentNode.OwnerDocument.ParseErrors.Count());
         }
 

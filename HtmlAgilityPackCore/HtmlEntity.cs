@@ -721,7 +721,7 @@ namespace HtmlAgilityPackCore
             {
                 if (result.NodeType == HtmlNodeType.Text)
                 {
-                    ((HtmlTextNode) result).Text = Entitize(((HtmlTextNode) result).Text, true, true);
+                    ((HtmlTextNode) result).Text = Entitize(((HtmlTextNode) result).Text.ToString(), true, true).AsMemory(); // TODO
                 }
             }
 
@@ -833,7 +833,7 @@ namespace HtmlAgilityPackCore
                 {
                     if (node.NodeType == HtmlNodeType.Text)
                     {
-                        ((HtmlTextNode) node).Text = Entitize(((HtmlTextNode) node).Text, true, true);
+                        ((HtmlTextNode) node).Text = Entitize(((HtmlTextNode) node).Text.ToString(), true, true).AsMemory(); // TODO
                     }
                 }
             }

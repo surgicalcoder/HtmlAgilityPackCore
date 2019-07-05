@@ -454,9 +454,9 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="comment">The comment text. May not be null.</param>
         /// <returns>The new HTML comment node.</returns>
-        public HtmlCommentNode CreateComment(string comment)
+        public HtmlCommentNode CreateComment(ReadOnlyMemory<char> comment)
         {
-            if (comment == null)
+            if (comment.IsEmpty)
             {
                 throw new ArgumentNullException("comment");
             }
@@ -497,9 +497,9 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="text">The text of the node. May not be null.</param>
         /// <returns>The new HTML text node.</returns>
-        public HtmlTextNode CreateTextNode(string text)
+        public HtmlTextNode CreateTextNode(ReadOnlyMemory<char> text)
         {
-            if (text == null)
+            if (text.IsEmpty)
             {
                 throw new ArgumentNullException("text");
             }
@@ -714,18 +714,18 @@ namespace HtmlAgilityPackCore
                     continue;
                 }
 
-                string html;
+                ReadOnlyMemory<char> html;
                 if (OptionExtractErrorSourceText)
                 {
                     html = node.OuterHtml;
                     if (html.Length > OptionExtractErrorSourceTextMaxLength)
                     {
-                        html = html .Substring(0, OptionExtractErrorSourceTextMaxLength);
+                        html = html.Slice(0, OptionExtractErrorSourceTextMaxLength);
                     }
                 }
                 else
                 {
-                    html = string.Empty;
+                    html = ReadOnlyMemory<char>.Empty;
                 }
 
                 AddError(
@@ -795,18 +795,18 @@ namespace HtmlAgilityPackCore
                     continue;
                 }
 
-                string html;
+                ReadOnlyMemory<char> html;
                 if (OptionExtractErrorSourceText)
                 {
                     html = node.OuterHtml;
                     if (html.Length > OptionExtractErrorSourceTextMaxLength)
                     {
-                        html = html.Substring(0, OptionExtractErrorSourceTextMaxLength);
+                        html = html.Slice(0, OptionExtractErrorSourceTextMaxLength);
                     }
                 }
                 else
                 {
-                    html = string.Empty;
+                    html = ReadOnlyMemory<char>.Empty;
                 }
 
                 AddError(
@@ -818,6 +818,16 @@ namespace HtmlAgilityPackCore
 
             // we don't need this anymore
             Openednodes.Clear();
+        }
+
+        public async Task LoadHtml(ReadOnlyMemory<char> html)
+        {
+            if (html.IsEmpty)
+            {
+                throw new ArgumentNullException(nameof(html));
+            }
+
+            await Load(html);
         }
 
         /// <summary>
@@ -977,7 +987,7 @@ namespace HtmlAgilityPackCore
 
         #region Private Methods
 
-        private void AddError(HtmlParseErrorCode code, int line, int linePosition, int streamPosition, string sourceText, string reason)
+        private void AddError(HtmlParseErrorCode code, int line, int linePosition, int streamPosition, ReadOnlyMemory<char> sourceText, string reason)
         {
             HtmlParseError err = new HtmlParseError(code, line, linePosition, streamPosition, sourceText, reason);
             _parseerrors.Add(err);
@@ -1041,7 +1051,8 @@ namespace HtmlAgilityPackCore
                         // this is a hack: add it as a text node
                         HtmlNode closenode = CreateNode(HtmlNodeType.Text, _currentnode._outerstartindex);
                         closenode._outerlength = _currentnode._outerlength;
-                        ((HtmlTextNode) closenode).Text = ((HtmlTextNode) closenode).Text.ToLowerInvariant();
+                        
+                        ((HtmlTextNode) closenode).Text = ((HtmlTextNode) closenode).Text.ToString().ToLowerInvariant().AsMemory(); //TODO
                         if (_lastparentnode != null)
                         {
                             _lastparentnode.AppendChild(closenode);

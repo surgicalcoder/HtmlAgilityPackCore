@@ -415,7 +415,7 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
                         InternalTrace(">" + ((HtmlCommentNode) _currentnode).Comment);
 #endif
-                        return ((HtmlCommentNode) _currentnode).Comment;
+                        return ((HtmlCommentNode) _currentnode).Comment.ToString();
 
                     case HtmlNodeType.Document:
 #if TRACE_NAVIGATOR
@@ -427,7 +427,7 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
                         InternalTrace(">" + ((HtmlTextNode) _currentnode).Text);
 #endif
-                        return ((HtmlTextNode) _currentnode).Text;
+                        return ((HtmlTextNode) _currentnode).Text.ToString();
 
                     case HtmlNodeType.Element:
                     {
@@ -439,7 +439,7 @@ namespace HtmlAgilityPackCore
                            return _currentnode.Attributes[_attindex].Value;
                         }
 
-                        return _currentnode.InnerText;
+                        return _currentnode.InnerText.ToString(); // TODO
                     }
 
                     default:
