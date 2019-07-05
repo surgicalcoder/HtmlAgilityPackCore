@@ -113,7 +113,7 @@ namespace HtmlAgilityPackCore
                             {
                                 HtmlDocument innerHtmlDocument = new HtmlDocument();
 
-                                innerHtmlDocument.LoadHtml(htmlNode.InnerHtml);
+                                innerHtmlDocument.LoadHtml(htmlNode.InnerHtml).Wait(); // TODO
 
                                 object o = GetEncapsulatedData(propertyInfo.PropertyType, innerHtmlDocument);
 
@@ -213,7 +213,7 @@ namespace HtmlAgilityPackCore
                                     foreach (HtmlNode node in nodeCollection)
                                     {
                                         HtmlDocument innerHtmlDocument = new HtmlDocument();
-                                        innerHtmlDocument.LoadHtml(node.InnerHtml);
+                                        innerHtmlDocument.LoadHtml(node.InnerHtml).Wait(); // TODO
 
                                         object o = GetEncapsulatedData(T_Types[0], innerHtmlDocument);
 

@@ -73,7 +73,7 @@ namespace HtmlAgilityPackCore
         /// <param name="stream">The input stream.</param>
         public HtmlNodeNavigator(Stream stream)
         {
-            _doc.Load(stream);
+            _doc.Load(stream).Wait();
             Reset();
         }
 
@@ -84,7 +84,7 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
         public HtmlNodeNavigator(Stream stream, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(stream, detectEncodingFromByteOrderMarks);
+            _doc.Load(stream, detectEncodingFromByteOrderMarks).Wait();
             Reset();
         }
 
@@ -95,7 +95,7 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding)
         {
-            _doc.Load(stream, encoding);
+            _doc.Load(stream, encoding).Wait();
             Reset();
         }
 
@@ -107,7 +107,7 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks);
+            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks).Wait();
             Reset();
         }
 
@@ -120,7 +120,7 @@ namespace HtmlAgilityPackCore
         /// <param name="buffersize">The minimum buffer size.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
-            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks, buffersize);
+            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks, buffersize).Wait();
             Reset();
         }
 
@@ -130,18 +130,17 @@ namespace HtmlAgilityPackCore
         /// <param name="reader">The TextReader used to feed the HTML data into the document.</param>
         public HtmlNodeNavigator(TextReader reader)
         {
-            _doc.Load(reader);
+            _doc.Load(reader).Wait();
             Reset();
         }
 
-#if !(NETSTANDARD1_3 || NETSTANDARD1_6)
         /// <summary>
         /// Initializes a new instance of the HtmlNavigator and loads an HTML document from a file.
         /// </summary>
         /// <param name="path">The complete file path to be read.</param>
         public HtmlNodeNavigator(string path)
         {
-            _doc.Load(path);
+            _doc.Load(path).Wait();
             Reset();
         }
 
@@ -152,7 +151,7 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
         public HtmlNodeNavigator(string path, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(path, detectEncodingFromByteOrderMarks);
+            _doc.Load(path, detectEncodingFromByteOrderMarks).Wait();
             Reset();
         }
 
@@ -163,7 +162,7 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use.</param>
         public HtmlNodeNavigator(string path, Encoding encoding)
         {
-            _doc.Load(path, encoding);
+            _doc.Load(path, encoding).Wait();
             Reset();
         }
 
@@ -175,7 +174,7 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
         public HtmlNodeNavigator(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks);
+            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks).Wait();
             Reset();
         }
 
@@ -188,10 +187,9 @@ namespace HtmlAgilityPackCore
         /// <param name="buffersize">The minimum buffer size.</param>
         public HtmlNodeNavigator(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
-            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks, buffersize);
+            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks, buffersize).Wait();
             Reset();
         }
-#endif
 
 #endregion
 

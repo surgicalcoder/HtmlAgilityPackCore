@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace HtmlAgilityPackCore
@@ -639,9 +640,9 @@ namespace HtmlAgilityPackCore
         /// Loads an HTML document from a stream.
         /// </summary>
         /// <param name="stream">The input stream.</param>
-        public void Load(Stream stream)
+        public async Task Load(Stream stream)
         {
-            Load(new StreamReader(stream, OptionDefaultStreamEncoding));
+            await Load(new StreamReader(stream, OptionDefaultStreamEncoding));
         }
 
         /// <summary>
@@ -649,9 +650,9 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="stream">The input stream.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
-        public void Load(Stream stream, bool detectEncodingFromByteOrderMarks)
+        public async Task Load(Stream stream, bool detectEncodingFromByteOrderMarks)
         {
-            Load(new StreamReader(stream, detectEncodingFromByteOrderMarks));
+            await Load(new StreamReader(stream, detectEncodingFromByteOrderMarks));
         }
 
         /// <summary>
@@ -659,9 +660,9 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="stream">The input stream.</param>
         /// <param name="encoding">The character encoding to use.</param>
-        public void Load(Stream stream, Encoding encoding)
+        public async Task Load(Stream stream, Encoding encoding)
         {
-            Load(new StreamReader(stream, encoding));
+            await Load(new StreamReader(stream, encoding));
         }
 
         /// <summary>
@@ -670,9 +671,9 @@ namespace HtmlAgilityPackCore
         /// <param name="stream">The input stream.</param>
         /// <param name="encoding">The character encoding to use.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
-        public void Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
+        public async Task Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
-            Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks));
+            await Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks));
         }
 
         /// <summary>
@@ -682,9 +683,9 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
         /// <param name="buffersize">The minimum buffer size.</param>
-        public void Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
+        public async Task Load(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
-            Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks, buffersize));
+            await Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks, buffersize));
         }
 
 
@@ -692,7 +693,7 @@ namespace HtmlAgilityPackCore
         /// Loads the HTML document from the specified TextReader.
         /// </summary>
         /// <param name="reader">The TextReader used to feed the HTML data into the document. May not be null.</param>
-        public void Load(TextReader reader)
+        public async Task Load(TextReader reader)
         {
             // all Load methods pass down to this one
             if (reader == null)
@@ -714,8 +715,7 @@ namespace HtmlAgilityPackCore
                 Nodesid = null;
             }
 
-            StreamReader sr = reader as StreamReader;
-            if (sr != null)
+            if (reader is StreamReader sr)
             {
                 try
                 {
@@ -738,8 +738,10 @@ namespace HtmlAgilityPackCore
 
             _declaredencoding = null;
 
-            Text = reader.ReadToEnd().AsMemory();
+            Text = (await reader.ReadToEndAsync()).AsMemory();
+
             _documentnode = CreateNode(HtmlNodeType.Document, 0);
+
             Parse();
 
             if (!OptionCheckSyntax || Openednodes == null) return;
@@ -779,7 +781,7 @@ namespace HtmlAgilityPackCore
         /// Loads the HTML document from the specified string.
         /// </summary>
         /// <param name="html">String containing the HTML document to load. May not be null.</param>
-        public void LoadHtml(string html)
+        public async Task LoadHtml(string html)
         {
             if (html == null)
             {
@@ -788,7 +790,7 @@ namespace HtmlAgilityPackCore
 
             using (StringReader sr = new StringReader(html))
             {
-                Load(sr);
+                await Load(sr);
             }
         }
 

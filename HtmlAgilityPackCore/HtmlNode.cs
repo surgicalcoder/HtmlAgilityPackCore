@@ -354,7 +354,7 @@ namespace HtmlAgilityPackCore
 			set
 			{
 				HtmlDocument doc = new HtmlDocument();
-				doc.LoadHtml(value);
+				doc.LoadHtml(value).Wait();
 
 				RemoveAllChildren();
 				AppendChildren(doc.DocumentNode.ChildNodes);
@@ -704,9 +704,10 @@ namespace HtmlAgilityPackCore
 		/// <returns>The newly created node instance.</returns>
 		public static HtmlNode CreateNode(string html)
 		{
-			// REVIEW: this is *not* optimum...
-			HtmlDocument doc = new HtmlDocument();
-			doc.LoadHtml(html);
+            // REVIEW: this is *not* optimum...
+            // TODO
+            HtmlDocument doc = new HtmlDocument();
+			doc.LoadHtml(html).Wait();
 			if (!doc.DocumentNode.IsSingleElementNode())
 			{
 				throw new Exception("Multiple node elments can't be created.");
