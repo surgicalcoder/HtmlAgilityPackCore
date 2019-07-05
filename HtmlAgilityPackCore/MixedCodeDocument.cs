@@ -21,7 +21,7 @@ namespace HtmlAgilityPackCore
         private int _lineposition;
         private ParseState _state;
         private Encoding _streamencoding;
-        internal string _text;
+        internal ReadOnlyMemory<char> _text;
         internal MixedCodeDocumentFragmentList _textfragments;
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace HtmlAgilityPackCore
                     _streamencoding = sr.CurrentEncoding;
                 }
 
-                _text = reader.ReadToEnd();
+                _text = reader.ReadToEnd().AsMemory(); // TODO
             }
 
             Parse();
@@ -421,7 +421,7 @@ namespace HtmlAgilityPackCore
 
             while (_index < _text.Length)
             {
-                _c = _text[_index];
+                _c = _text.Span[_index];
                 IncrementPosition();
 
                 switch (_state)
@@ -429,7 +429,7 @@ namespace HtmlAgilityPackCore
                     case ParseState.Text:
                         if (_index + TokenCodeStart.Length < _text.Length)
                         {
-                            if (_text.Substring(_index - 1, TokenCodeStart.Length) == TokenCodeStart)
+                            if (_text.Slice(_index - 1, TokenCodeStart.Length).ToString() == TokenCodeStart)
                             {
                                 _state = ParseState.Code;
                                 _currentfragment.Length = _index - 1 - _currentfragment.Index;
@@ -444,7 +444,7 @@ namespace HtmlAgilityPackCore
                     case ParseState.Code:
                         if (_index + TokenCodeEnd.Length < _text.Length)
                         {
-                            if (_text.Substring(_index - 1, TokenCodeEnd.Length) == TokenCodeEnd)
+                            if (_text.Slice(_index - 1, TokenCodeEnd.Length).ToString() == TokenCodeEnd)
                             {
                                 _state = ParseState.Text;
                                 _currentfragment.Length = _index + TokenCodeEnd.Length - _currentfragment.Index;

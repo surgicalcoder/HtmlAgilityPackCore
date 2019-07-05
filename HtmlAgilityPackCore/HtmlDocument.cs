@@ -689,7 +689,9 @@ namespace HtmlAgilityPackCore
             await Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks, buffersize));
         }
 
+#pragma warning disable 1998
         public async Task Load(ReadOnlyMemory<char> contents)
+#pragma warning restore 1998
         {
             if (contents.IsEmpty)
             {

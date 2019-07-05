@@ -51,7 +51,7 @@ namespace HtmlAgilityPackCore
             {
                 if (_fragmentText == null)
                 {
-                    _fragmentText = Doc._text.Substring(Index, Length);
+                    _fragmentText = Doc._text.Slice(Index, Length).ToString(); //TODO
                 }
 
                 return _fragmentText;

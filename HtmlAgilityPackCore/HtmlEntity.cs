@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using AI4E.Utils.Memory;
 
 namespace HtmlAgilityPackCore
 {
@@ -620,27 +621,28 @@ namespace HtmlAgilityPackCore
                                 {
                                     if (entity[0] == '#')
                                     {
-                                        string e = entity.ToString();
+                                        var e = entity.ToString().AsMemory();
                                         try
                                         {
-                                            string codeStr = e.Substring(1).Trim();
+                                            
+                                            var codeStr = e.Slice(1).Trim();
                                             int fromBase;
-                                            if (codeStr.StartsWith("x", StringComparison.OrdinalIgnoreCase))
+                                            if (codeStr.Span.StartsWith("x".AsSpan(), StringComparison.OrdinalIgnoreCase))
                                             {
                                                 fromBase = 16;
-                                                codeStr = codeStr.Substring(1);
+                                                codeStr = codeStr.Slice(1);
                                             }
                                             else
                                             {
                                                 fromBase = 10;
                                             }
 
-                                            int code = Convert.ToInt32(codeStr, fromBase);
+                                            int code = Convert.ToInt32(codeStr.ToString(), fromBase);
                                             sb.Append(Convert.ToChar(code));
                                         }
                                         catch
                                         {
-                                            sb.Append("&#" + e + ";");
+                                            sb.Append($"&#{e.ToString()};");
                                         }
                                     }
                                     else

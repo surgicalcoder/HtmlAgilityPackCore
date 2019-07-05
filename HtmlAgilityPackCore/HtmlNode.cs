@@ -832,7 +832,7 @@ namespace HtmlAgilityPackCore
 				(text[1] != '/'))
 				return false;
 
-			string name = text.Substring(2, text.Length - 3);
+			string name = text.AsSpan().Slice(2, text.Length - 3).ToString();
 			return CanOverlapElement(name);
 		}
 
