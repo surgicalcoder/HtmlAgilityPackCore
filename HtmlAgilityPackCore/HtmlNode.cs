@@ -38,7 +38,7 @@ namespace HtmlAgilityPackCore
 		internal int _namestartindex;
 		internal HtmlNode _nextnode;
 		internal HtmlNodeType _nodetype;
-		internal string _outerhtml;
+		internal ReadOnlyMemory<char> _outerhtml;
 		internal int _outerlength;
 		internal int _outerstartindex;
 		private string _optimizedName;
@@ -593,7 +593,7 @@ namespace HtmlAgilityPackCore
 		/// <summary>
 		/// Gets or Sets the object and its content in HTML.
 		/// </summary>
-		public virtual string OuterHtml
+		public virtual ReadOnlyMemory<char> OuterHtml // TODO
 		{
 			get
 			{
@@ -603,17 +603,17 @@ namespace HtmlAgilityPackCore
 					return _outerhtml;
 				}
 
-				if (_outerhtml != null)
+				if (!_outerhtml.IsEmpty)
 				{
 					return _outerhtml;
 				}
 
 				if (_outerstartindex < 0 || _outerlength < 0)
 				{
-					return string.Empty;
+					return ReadOnlyMemory<char>.Empty;
 				}
 
-				return _ownerdocument.Text.Slice(_outerstartindex, _outerlength).ToString(); // TODO
+				return _ownerdocument.Text.Slice(_outerstartindex, _outerlength); // TODO
 			}
 		}
 
@@ -717,8 +717,10 @@ namespace HtmlAgilityPackCore
 
 			while (element != null)
 			{
-				if (element.NodeType == HtmlNodeType.Element && element.OuterHtml != "\r\n")
-					return element;
+                if (element.NodeType == HtmlNodeType.Element && element.OuterHtml.ToString() != "\r\n")
+                {
+                    return element;
+                }
 
 				element = element.NextSibling;
 			}
@@ -1699,11 +1701,8 @@ namespace HtmlAgilityPackCore
 				case HtmlNodeType.Document:
 					if (_ownerdocument.OptionOutputAsXml)
 					{
-#if SILVERLIGHT || PocketPC || METRO || NETSTANDARD1_3 || NETSTANDARD1_6
-						outText.Write("<?xml version=\"1.0\" encoding=\"" + _ownerdocument.GetOutEncoding().WebName + "\"?>");
-#else
-                        outText.Write("<?xml version=\"1.0\" encoding=\"" + _ownerdocument.GetOutEncoding().BodyName + "\"?>");
-#endif
+
+                        outText.Write($"<?xml version=\"1.0\" encoding=\"{_ownerdocument.GetOutEncoding().BodyName}\"?>");
 						// check there is a root element
 						if (_ownerdocument.DocumentNode.HasChildNodes)
 						{
@@ -1853,15 +1852,7 @@ namespace HtmlAgilityPackCore
 					break;
 
 				case HtmlNodeType.Document:
-#if SILVERLIGHT || PocketPC || METRO || NETSTANDARD1_3 || NETSTANDARD1_6
-					writer.WriteProcessingInstruction("xml",
-													  "version=\"1.0\" encoding=\"" +
-													  _ownerdocument.GetOutEncoding().WebName + "\"");
-#else
-                    writer.WriteProcessingInstruction("xml",
-                        "version=\"1.0\" encoding=\"" +
-                        _ownerdocument.GetOutEncoding().BodyName + "\"");
-#endif
+                    writer.WriteProcessingInstruction("xml", $"version=\"1.0\" encoding=\"{_ownerdocument.GetOutEncoding().BodyName}\"");
 
 					if (HasChildNodes)
 					{
@@ -1910,7 +1901,7 @@ namespace HtmlAgilityPackCore
 			{
 				WriteTo(sw);
 				sw.Flush();
-				return sw.ToString();
+				return sw.ToString(); // TODO
 			}
 		}
 
@@ -1947,7 +1938,7 @@ namespace HtmlAgilityPackCore
 		private void UpdateHtml()
 		{
 			_innerhtml = WriteContentTo();
-			_outerhtml = WriteTo();
+			_outerhtml = WriteTo().AsMemory();
 			_changed = false;
 		}
 
@@ -2203,7 +2194,7 @@ namespace HtmlAgilityPackCore
 
 			while (element != null)
 			{
-				if (element.NodeType == HtmlNodeType.Element && element.OuterHtml != "\r\n")
+				if (element.NodeType == HtmlNodeType.Element && element.OuterHtml.ToString() != "\r\n")
 					count++;
 
 				element = element.NextSibling;

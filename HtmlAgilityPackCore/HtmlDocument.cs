@@ -387,7 +387,7 @@ namespace HtmlAgilityPackCore
             }
 
             // replace & by &amp; but only once!
-
+            // TODO
             Regex rx = backwardCompatibility ? new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;))", RegexOptions.IgnoreCase) : new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;)|(nbsp;)|(reg;))", RegexOptions.IgnoreCase);
             return rx.Replace(html, "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
         }
@@ -688,6 +688,57 @@ namespace HtmlAgilityPackCore
             await Load(new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks, buffersize));
         }
 
+        public async Task Load(ReadOnlyMemory<char> contents)
+        {
+            if (contents.IsEmpty)
+            {
+                throw new ArgumentNullException(nameof(contents));
+            }
+
+            Openednodes = OptionCheckSyntax ? new Dictionary<int, HtmlNode>() : null;
+
+            Nodesid = OptionUseIdAttribute ? new Dictionary<string, HtmlNode>(StringComparer.OrdinalIgnoreCase) : null;
+
+
+            Text = contents;
+
+            _documentnode = CreateNode(HtmlNodeType.Document, 0);
+
+            Parse();
+
+            if (!OptionCheckSyntax || Openednodes == null) return;
+            foreach (HtmlNode node in Openednodes.Values)
+            {
+                if (!node._starttag) // already reported
+                {
+                    continue;
+                }
+
+                string html;
+                if (OptionExtractErrorSourceText)
+                {
+                    html = node.OuterHtml;
+                    if (html.Length > OptionExtractErrorSourceTextMaxLength)
+                    {
+                        html = html .Substring(0, OptionExtractErrorSourceTextMaxLength);
+                    }
+                }
+                else
+                {
+                    html = string.Empty;
+                }
+
+                AddError(
+                    HtmlParseErrorCode.TagNotClosed,
+                    node._line, node._lineposition,
+                    node._streamposition, html,
+                    "End tag </" + node.Name + "> was not found");
+            }
+
+            // we don't need this anymore
+            Openednodes.Clear();
+
+        }
 
         /// <summary>
         /// Loads the HTML document from the specified TextReader.
@@ -695,31 +746,17 @@ namespace HtmlAgilityPackCore
         /// <param name="reader">The TextReader used to feed the HTML data into the document. May not be null.</param>
         public async Task Load(TextReader reader)
         {
-            // all Load methods pass down to this one
+            
             if (reader == null)
             {
-                throw new ArgumentNullException("reader");
+                throw new ArgumentNullException(nameof(reader));
             }
 
             _onlyDetectEncoding = false;
 
-            if (OptionCheckSyntax)
-            {
-                Openednodes = new Dictionary<int, HtmlNode>();
-            }
-            else
-            {
-                Openednodes = null;
-            }
+            Openednodes = OptionCheckSyntax ? new Dictionary<int, HtmlNode>() : null;
 
-            if (OptionUseIdAttribute)
-            {
-                Nodesid = new Dictionary<string, HtmlNode>(StringComparer.OrdinalIgnoreCase);
-            }
-            else
-            {
-                Nodesid = null;
-            }
+            Nodesid = OptionUseIdAttribute ? new Dictionary<string, HtmlNode>(StringComparer.OrdinalIgnoreCase) : null;
 
             if (reader is StreamReader sr)
             {
@@ -794,10 +831,7 @@ namespace HtmlAgilityPackCore
                 throw new ArgumentNullException("html");
             }
 
-            using (StringReader sr = new StringReader(html)) // TODO
-            {
-                await Load(sr);
-            }
+            await Load(html.AsMemory());
         }
 
         /// <summary>
@@ -1270,10 +1304,7 @@ namespace HtmlAgilityPackCore
 
         private void Parse()
         {
-            if (ParseExecuting != null)
-            {
-                ParseExecuting(this);
-            }
+            ParseExecuting?.Invoke(this);
 
             int lastquote = 0;
             if (OptionComputeChecksum)

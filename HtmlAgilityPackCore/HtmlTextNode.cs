@@ -1,3 +1,5 @@
+using System;
+
 namespace HtmlAgilityPackCore
 {
     /// <summary>
@@ -35,7 +37,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets or Sets the object and its content in HTML.
         /// </summary>
-        public override string OuterHtml
+        public override ReadOnlyMemory<char> OuterHtml
         {
             get
             {
