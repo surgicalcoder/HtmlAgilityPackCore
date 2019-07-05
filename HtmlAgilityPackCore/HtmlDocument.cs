@@ -697,14 +697,20 @@ namespace HtmlAgilityPackCore
         {
             // all Load methods pass down to this one
             if (reader == null)
+            {
                 throw new ArgumentNullException("reader");
+            }
 
             _onlyDetectEncoding = false;
 
             if (OptionCheckSyntax)
+            {
                 Openednodes = new Dictionary<int, HtmlNode>();
+            }
             else
+            {
                 Openednodes = null;
+            }
 
             if (OptionUseIdAttribute)
             {
