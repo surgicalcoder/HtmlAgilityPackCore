@@ -788,7 +788,7 @@ namespace HtmlAgilityPackCore
                 throw new ArgumentNullException("html");
             }
 
-            using (StringReader sr = new StringReader(html))
+            using (StringReader sr = new StringReader(html)) // TODO
             {
                 await Load(sr);
             }

@@ -82,7 +82,7 @@ namespace HtmlAgilityPackCore.Tests
         {
             {
                 var document = new HtmlDocument();
-                document.LoadHtml(@"<scrapt>foo</scrapt>");
+                document.LoadHtml(@"<scrapt>foo</scrapt>").Wait();
                 var scraptText = document.DocumentNode.FirstChild.FirstChild;
                 Assert.AreEqual(8, scraptText.StreamPosition);
                 Assert.AreEqual(1, scraptText.Line);
@@ -90,7 +90,7 @@ namespace HtmlAgilityPackCore.Tests
             }
             {
                 var document = new HtmlDocument();
-                document.LoadHtml(@"<script>foo</script>");
+                document.LoadHtml(@"<script>foo</script>").Wait();
                 var scriptText = document.DocumentNode.FirstChild.FirstChild;
                 Assert.AreEqual(8, scriptText.StreamPosition);
                 Assert.AreEqual(1, scriptText.Line);
@@ -99,7 +99,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var document = new HtmlDocument();
                 document.LoadHtml(@"
-<scrapt>foo</scrapt>");
+<scrapt>foo</scrapt>").Wait();
                 var scraptText = document.DocumentNode.LastChild.FirstChild;
                 //   var aa = scraptText.FirstChild;
                 Assert.AreEqual(9, scraptText.StreamPosition);
@@ -111,7 +111,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var document = new HtmlDocument();
                 document.LoadHtml(@"
-<script>foo</script>");
+<script>foo</script>").Wait();
                 var scriptText = document.DocumentNode.LastChild.FirstChild;
                 Assert.AreEqual(9, scriptText.StreamPosition);
                 Assert.AreEqual(2, scriptText.Line);
@@ -150,7 +150,7 @@ namespace HtmlAgilityPackCore.Tests
         {
             {
                 var doc = new HtmlDocument();
-                doc.LoadHtml(@"<script><div>hello</div></script><TEXTAREA>Text in the <div>hello</div>area</TEXTAREA>");
+                doc.LoadHtml(@"<script><div>hello</div></script><TEXTAREA>Text in the <div>hello</div>area</TEXTAREA>").Wait();
                 HtmlNodeCollection divs = doc.DocumentNode.SelectNodes("//div");
 
                 Assert.IsNull(divs);
@@ -240,14 +240,12 @@ namespace HtmlAgilityPackCore.Tests
         public void TestParseSaveParse()
         {
             var doc = GetMshomeDocument();
-            var doc1desc =
-                doc.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+            var doc1desc = doc.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
             doc.Save(_contentDirectory + "testsaveparse.html");
 
             var doc2 = new HtmlDocument();
             doc2.Load(_contentDirectory + "testsaveparse.html").Wait();
-            var doc2desc =
-                doc2.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
+            var doc2desc = doc2.DocumentNode.Descendants().Where(x => !string.IsNullOrWhiteSpace(x.InnerText)).ToList();
             Assert.AreEqual(doc1desc.Count, doc2desc.Count);
             //for(var i=0; i< doc1desc.Count;i++)
             //{
@@ -307,7 +305,7 @@ namespace HtmlAgilityPackCore.Tests
             var html = @"<div attr='test'></div>";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var divNode = htmlDoc.DocumentNode.SelectSingleNode("//div");
 
@@ -341,7 +339,7 @@ namespace HtmlAgilityPackCore.Tests
 </html> ";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var h1 = htmlDoc.DocumentNode.SelectNodes("//h1");
             var comments = htmlDoc.DocumentNode.SelectNodes("//comment()");
@@ -356,7 +354,7 @@ namespace HtmlAgilityPackCore.Tests
             var html = @"<div attr='test'></div>";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var divNode = htmlDoc.DocumentNode.SelectSingleNode("//div");
 
@@ -376,7 +374,7 @@ namespace HtmlAgilityPackCore.Tests
         {
             var html = "<img src=\"x\"/onerror=\"alert('onerror1')\"><img/src=\"x\"/onerror=\"alert('onerror2')\">";
             var doc = new HtmlDocument();
-            doc.LoadHtml(html);
+            doc.LoadHtml(html).Wait();
 
             Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
         }
@@ -387,7 +385,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var html = "<img src=\"x\"//onerror=\"alert('onerror1')\"><img//src=\"x\"//onerror=\"alert('onerror2')\">";
                 var doc = new HtmlDocument();
-                doc.LoadHtml(html);
+                doc.LoadHtml(html).Wait();
 
                 Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
             }
@@ -395,7 +393,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var html = "<img src=\"x\"//////onerror=\"alert('onerror1')\"><img//////////////src=\"x\"////////////////onerror=\"alert('onerror2')\">";
                 var doc = new HtmlDocument();
-                doc.LoadHtml(html);
+                doc.LoadHtml(html).Wait();
 
                 Assert.AreEqual(@"<img src=""x"" onerror=""alert('onerror1')""><img src=""x"" onerror=""alert('onerror2')"">", doc.DocumentNode.OuterHtml);
             }
@@ -409,7 +407,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "<h1 class=\"input\">This is new heading</h1>";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var h1Node = htmlDoc.DocumentNode.SelectSingleNode("//h1");
 
@@ -426,7 +424,7 @@ namespace HtmlAgilityPackCore.Tests
             string html = "<h1 class=\"input\">This is new heading</h1>";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var h1Node = htmlDoc.DocumentNode.SelectSingleNode("//h1");
 
@@ -443,7 +441,7 @@ namespace HtmlAgilityPackCore.Tests
             string html = "<h1 class=\"input\">This is new heading</h1>";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var h1Node = htmlDoc.DocumentNode.SelectSingleNode("//h1");
 
@@ -464,31 +462,12 @@ namespace HtmlAgilityPackCore.Tests
 
             Assert.AreEqual(System.Text.Encoding.UTF8, encoding);
         }
-
-        //[Test]
-        //public void TestLoadWithCache()
-        //{
-        //    var dir = _contentDirectory + "cache";
-        //    Directory.CreateDirectory(dir);
-
-        //    var web = new HtmlWeb()
-        //    {
-        //        CachePath = dir,
-        //        UsingCache = true
-        //    };
-
-        //    var url = "http://html-agility-pack.net/";
-        //    var docCache = web.Load(url);
-
-        //    var docLoad = new HtmlWeb().Load(url);
-        //    Assert.AreEqual(docLoad.DocumentNode.OuterHtml, docCache.DocumentNode.OuterHtml);
-        //}
-
+        
         [Test]
         public void OuterHtmlHasBeenCalled_RemoveCalled_SubsequentOuterHtmlCallsAreBroken()
         {
             var doc = new HtmlDocument();
-            doc.LoadHtml("<html><head></head><body><div>SOme text here</div><div>some bolded<b>text</b></div></body></html>");
+            doc.LoadHtml("<html><head></head><body><div>SOme text here</div><div>some bolded<b>text</b></div></body></html>").Wait();
             var resultList = doc.DocumentNode.SelectNodes("//div");
             Assert.AreEqual(2, resultList.Count);
             resultList.First().Remove();
@@ -509,7 +488,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "\"Hello\"";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var body = htmlDoc.DocumentNode.SelectSingleNode("//body");
 
@@ -527,7 +506,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "\"\"Hello\"\"";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var body = htmlDoc.DocumentNode.SelectSingleNode("//body");
 
@@ -553,7 +532,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "\"Hello\"";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var body = htmlDoc.DocumentNode.SelectSingleNode("//body");
 
@@ -570,7 +549,7 @@ namespace HtmlAgilityPackCore.Tests
             string output = "http://example.com/path?productId=9788762505032&amp;title=something";
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             var body = htmlDoc.DocumentNode.SelectSingleNode("//body");
 
@@ -597,7 +576,7 @@ namespace HtmlAgilityPackCore.Tests
             var output = 0;
 
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(html);
+            htmlDoc.LoadHtml(html).Wait();
 
             htmlDoc.OptionEmptyCollection = true;
 
@@ -652,21 +631,11 @@ namespace HtmlAgilityPackCore.Tests
         }
 
         [Test]
-        public void TestLoadWithUri()
-        {
-            //string adress = "http://www.filmweb.pl/film/Piraci+z+Karaib%C3%B3w%3A+Zemsta+Salazara-2017-606542";
-            //Uri uri = new Uri(adress, true);
-            //var web = new HtmlWeb();
-            //HtmlDocument document = web.Load(uri);
-            //Assert.AreNotEqual(string.Empty, document.DocumentNode.OuterHtml);
-        }
-
-        [Test]
         public void TestFormTag()
         {
             var html = @"<form></form>";
             var document = new HtmlDocument();
-            document.LoadHtml(html);
+            document.LoadHtml(html).Wait();
             var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
             Assert.AreEqual(html, document.DocumentNode.OuterHtml);
             Assert.AreEqual(1, result.Count());
@@ -677,7 +646,7 @@ namespace HtmlAgilityPackCore.Tests
         {
             var html = @"<div><1</div>";
             var document = new HtmlDocument();
-            document.LoadHtml(html);
+            document.LoadHtml(html).Wait();
             var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
             Assert.AreEqual(html, document.DocumentNode.OuterHtml);
         }
@@ -688,7 +657,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var html = @"<dt>a<dd>b<dd>c<dt>a<dd>b<dd>c";
                 var document = new HtmlDocument();
-                document.LoadHtml(html);
+                document.LoadHtml(html).Wait();
                 var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
 
                 // TODO: Fix issue with last "dd"
@@ -699,7 +668,7 @@ namespace HtmlAgilityPackCore.Tests
             {
                 var html = @"<dt>a</dt><dd>b</dd><dd>c</dd><dt>a</dt><dd>b</dd><dd>c</dd>";
                 var document = new HtmlDocument();
-                document.LoadHtml(html);
+                document.LoadHtml(html).Wait();
                 var result = document.DocumentNode.Descendants().Select(dn => new {dn.NodeType, dn.Name, dn.OuterHtml}).ToArray();
 
                 Assert.AreEqual(html, document.DocumentNode.OuterHtml);
@@ -718,7 +687,7 @@ namespace HtmlAgilityPackCore.Tests
         public void InnerText_Comment()
         {
             var document = new HtmlDocument();
-            document.LoadHtml("<p><!-- comment 1 -->Expected <!-- comment 2 -->value</p>");
+            document.LoadHtml("<p><!-- comment 1 -->Expected <!-- comment 2 -->value</p>").Wait();
 
             Assert.AreEqual("Expected value", document.DocumentNode.FirstChild.InnerText);
         }
@@ -730,7 +699,7 @@ namespace HtmlAgilityPackCore.Tests
             var expectedHtml = "<html><body><a href='...'> Here's a great link! <a href='...'>Here's another one!</a>Here's some unrelated text.</body></html>";
 
             var doc = new HtmlDocument();
-            doc.LoadHtml(inHtml);
+            doc.LoadHtml(inHtml).Wait();
 
             Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml);
         }
@@ -741,7 +710,7 @@ namespace HtmlAgilityPackCore.Tests
             var inHtml = "<a><a>";
             var expectedHtml = "<a><a></a>";
             var doc = new HtmlDocument();
-            doc.LoadHtml(inHtml);
+            doc.LoadHtml(inHtml).Wait();
             Assert.AreEqual(expectedHtml, doc.DocumentNode.OuterHtml);
         }
 
@@ -763,7 +732,7 @@ namespace HtmlAgilityPackCore.Tests
             var expectedHtml = "InnerText bug DemoThis demonstration should show that the HAP currently parses div tags incorrectly, parsing carriage returns, new lines and tabular indents as text.";
 
             var doc = new HtmlDocument() {BackwardCompatibility = false};
-            doc.LoadHtml(inHtml);
+            doc.LoadHtml(inHtml).Wait();
 
             Assert.AreEqual(expectedHtml, doc.DocumentNode.InnerText);
         }
@@ -775,7 +744,7 @@ namespace HtmlAgilityPackCore.Tests
 
             string output = "<select><option>Select a cell</option><option>C1</option><option value='\"c2\"'></option></select>";
             var document = new HtmlDocument();
-            document.LoadHtml(html);
+            document.LoadHtml(html).Wait();
             Assert.AreEqual(output, document.DocumentNode.OuterHtml);
         }
 
@@ -783,7 +752,7 @@ namespace HtmlAgilityPackCore.Tests
         public void VerifyChildDivParent()
         {
             var doc = new HtmlDocument();
-            doc.LoadHtml("<html><body></body></html>");
+            doc.LoadHtml("<html><body></body></html>").Wait();
 
             var div = HtmlNode.CreateNode("<div class='1'/>");
             var div2 = HtmlNode.CreateNode("<div class='2'/>");
@@ -800,7 +769,7 @@ namespace HtmlAgilityPackCore.Tests
         public void ChildIsRemovedFromParent()
         {
             var doc = new HtmlDocument();
-            doc.LoadHtml("<html><body></body></html>");
+            doc.LoadHtml("<html><body></body></html>").Wait();
 
             var div = HtmlNode.CreateNode("<div class='1'/>");
             var div2 = HtmlNode.CreateNode("<div class='2'/>");
@@ -815,20 +784,6 @@ namespace HtmlAgilityPackCore.Tests
 
         }
 
-
-        //[Test]
-        //public void GetEncapsulatedData()
-        //{
-        //    HtmlWeb stackoverflowSite = new HtmlWeb();
-        //    HtmlDocument htmlDocument = stackoverflowSite.Load("https://stackoverflow.com/questions");
-        //    StackOverflowPage stackOverflowPage = htmlDocument.DocumentNode.GetEncapsulatedData<StackOverflowPage>();
-        //    IEnumerable<StackOverflowQuestion> filtered = stackOverflowPage.Questions.OrderByDescending(new Func<StackOverflowQuestion, int>(x => x.Statistics.Votes));
-           
-        //    Assert.IsTrue(filtered.Count() > 5);
-        //    Assert.IsTrue(filtered.ElementAt(0).Statistics.Votes > 0);
-
-        //}
-
         [Test]
         public void CompareLowerCulture()
         {
@@ -839,21 +794,19 @@ namespace HtmlAgilityPackCore.Tests
             CultureInfo cul1 = CultureInfo.CreateSpecificCulture("en-US");
             Thread.CurrentThread.CurrentCulture = cul1;
             HtmlDocument doc1 = new HtmlDocument();
-            doc1.LoadHtml(html);
+            doc1.LoadHtml(html).Wait();
 
             node1 = doc1.DocumentNode.SelectSingleNode("//div[@id='mainContents']/h2");
 
             CultureInfo cul2 = CultureInfo.CreateSpecificCulture("tr-TR");
             Thread.CurrentThread.CurrentCulture = cul2;
             HtmlDocument doc2 = new HtmlDocument();
-            doc2.LoadHtml(html);
+            doc2.LoadHtml(html).Wait();
             var s = doc2.DocumentNode.OuterHtml;
 
             HtmlNode node2 = doc2.DocumentNode.SelectSingleNode("//div[@id='mainContents']/h2");
             if (node1?.InnerHtml == node2?.InnerHtml)
-
-                 
-            Assert.AreEqual(node1?.InnerHtml, node2?.InnerHtml);
+                Assert.AreEqual(node1?.InnerHtml, node2?.InnerHtml);
             Assert.AreEqual(0, doc2.DocumentNode.OwnerDocument.ParseErrors.Count());
         }
 
@@ -867,7 +820,7 @@ namespace HtmlAgilityPackCore.Tests
             // Test 1
              
             HtmlDocument doc1 = new HtmlDocument();
-            doc1.LoadHtml(html);
+            doc1.LoadHtml(html).Wait();
 
             Assert.AreEqual(15, doc1.DocumentNode.ChildNodes[4].ChildNodes.Count);
 
@@ -881,7 +834,7 @@ namespace HtmlAgilityPackCore.Tests
   <value:element />
 </RootElement>";
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(input);
+            htmlDoc.LoadHtml(input).Wait();
             htmlDoc.OptionDefaultStreamEncoding = System.Text.Encoding.UTF8;
             htmlDoc.OptionOutputAsXml = true;
             htmlDoc.OptionOutputOriginalCase = true;
@@ -902,7 +855,7 @@ namespace HtmlAgilityPackCore.Tests
   <value:element />
 </RootElement>";
             var htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(input);
+            htmlDoc.LoadHtml(input).Wait();
             htmlDoc.OptionDefaultStreamEncoding = System.Text.Encoding.UTF8;
             htmlDoc.OptionOutputAsXml = true;
             htmlDoc.OptionOutputOriginalCase = true;
