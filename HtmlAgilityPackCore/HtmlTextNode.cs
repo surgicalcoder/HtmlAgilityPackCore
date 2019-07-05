@@ -7,21 +7,11 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlTextNode : HtmlNode
     {
-        #region Fields
-
         private ReadOnlyMemory<char> _text;
 
-        #endregion
-
-        #region Constructors
-
-        internal HtmlTextNode(HtmlDocument ownerdocument, int index)
-            :
-            base(HtmlNodeType.Text, ownerdocument, index)
+        internal HtmlTextNode(HtmlDocument ownerdocument, int index) : base(HtmlNodeType.Text, ownerdocument, index)
         {
         }
-
-        #endregion
 
         #region Properties
 
@@ -30,8 +20,8 @@ namespace HtmlAgilityPackCore
         /// </summary>
         public override ReadOnlyMemory<char> InnerHtml
         {
-            get { return OuterHtml; }
-            set { _text = value; }
+            get => OuterHtml;
+            set => _text = value;
         }
 
         /// <summary>
@@ -41,12 +31,7 @@ namespace HtmlAgilityPackCore
         {
             get
             {
-                if (_text.IsEmpty)
-                {
-                    return base.OuterHtml;
-                }
-
-                return _text;
+                return _text.IsEmpty ? base.OuterHtml : _text;
             }
         }
 
@@ -57,12 +42,7 @@ namespace HtmlAgilityPackCore
         {
             get
             {
-                if (_text.IsEmpty)
-                {
-                    return base.OuterHtml;
-                }
-
-                return _text;
+                return _text.IsEmpty ? base.OuterHtml : _text;
             }
             set
             {

@@ -71,7 +71,7 @@ namespace HtmlAgilityPackCore
                     return base.OuterHtml;
                 }
 
-                return $"<!--{_comment}-->".AsMemory();
+                return $"<!--{_comment.ToString()}-->".AsMemory();
             }
         }
 

@@ -22,7 +22,7 @@ namespace HtmlAgilityPackCore.Tests
         }
 
         [Test]
-        [AssertTraffic(AllocatedObjectsCount = 50)]
+        //[AssertTraffic(AllocatedObjectsCount = 50)]
         public void Test1()
         {
             

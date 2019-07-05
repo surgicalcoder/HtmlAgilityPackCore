@@ -379,16 +379,17 @@ namespace HtmlAgilityPackCore
             return HtmlEncodeWithCompatibility(html, true);
         }
 
+        private static readonly Regex backwardsCompatRegex = new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex nonBackwardsCompatibleRegex = new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;)|(nbsp;)|(reg;))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         internal static string HtmlEncodeWithCompatibility(string html, bool backwardCompatibility = true)
         {
             if (html == null)
             {
-                throw new ArgumentNullException("html");
+                throw new ArgumentNullException(nameof(html));
             }
 
-            // replace & by &amp; but only once!
-            // TODO
-            Regex rx = backwardCompatibility ? new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;))", RegexOptions.IgnoreCase) : new Regex("&(?!(amp;)|(lt;)|(gt;)|(quot;)|(nbsp;)|(reg;))", RegexOptions.IgnoreCase);
+            var rx = backwardCompatibility ? backwardsCompatRegex : nonBackwardsCompatibleRegex;
             return rx.Replace(html, "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
         }
 
@@ -415,7 +416,7 @@ namespace HtmlAgilityPackCore
         public HtmlAttribute CreateAttribute(string name)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             HtmlAttribute att = CreateAttribute();
             att.Name = name;
