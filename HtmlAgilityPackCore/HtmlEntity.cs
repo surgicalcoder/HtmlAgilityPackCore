@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using AI4E.Utils.Memory;
-
 namespace HtmlAgilityPackCore
 {
     /// <summary>
