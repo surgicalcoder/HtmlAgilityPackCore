@@ -19,10 +19,7 @@ namespace HtmlAgilityPackCore.Tests
         [OneTimeSetUp]
         public void Setup()
         {
-             
-
             _contentDirectory = Path.GetDirectoryName(typeof(HtmlDocumentTests).Assembly.Location).ToString() + "\\files\\";
-            //   _contentDirectory = Path.Combine(@"C:\Users\Jonathan\Desktop\Z\zzzproject\HtmlAgilityPack\HtmlAgilityPack.Tests\bin\Debug\files\");
         }
 
         private HtmlDocument GetMshomeDocument()
@@ -36,25 +33,25 @@ namespace HtmlAgilityPackCore.Tests
         public void HtmlAgilityPack_AttributeCollectionBug()
         {
             { 
-            const string firstAttrName = "first";
-            const string secondAttrName = "second";
-            const string value = "value";
+                const string firstAttrName = "first";
+                const string secondAttrName = "second";
+                const string value = "value";
 
-            HtmlNode firstNode = HtmlNode.CreateNode("<div></div>");
-            firstNode.Attributes.Add(firstAttrName, value);
+                HtmlNode firstNode = HtmlNode.CreateNode("<div></div>");
+                firstNode.Attributes.Add(firstAttrName, value);
 
-            HtmlNode secondNode = HtmlNode.CreateNode("<div></div>");
-            secondNode.Attributes.Add(secondAttrName, value);
+                HtmlNode secondNode = HtmlNode.CreateNode("<div></div>");
+                secondNode.Attributes.Add(secondAttrName, value);
        
-            secondNode.Attributes[0] = firstNode.Attributes[0];
+                secondNode.Attributes[0] = firstNode.Attributes[0];
 
-            Assert.IsNotNull(secondNode.Attributes[0]);
-            Assert.AreEqual(firstAttrName, secondNode.Attributes[0].Name);
+                Assert.IsNotNull(secondNode.Attributes[0]);
+                Assert.AreEqual(firstAttrName, secondNode.Attributes[0].Name);
 
-            Assert.IsNotNull(secondNode.Attributes[firstAttrName], $"'{firstAttrName}' should exist in the collection");
-            Assert.AreEqual(firstAttrName, secondNode.Attributes[firstAttrName].Name);
+                Assert.IsNotNull(secondNode.Attributes[firstAttrName], $"'{firstAttrName}' should exist in the collection");
+                Assert.AreEqual(firstAttrName, secondNode.Attributes[firstAttrName].Name);
 
-            Assert.IsNull(secondNode.Attributes   [secondAttrName], $"{secondAttrName} should not exist in the collection");
+                Assert.IsNull(secondNode.Attributes   [secondAttrName], $"{secondAttrName} should not exist in the collection");
             }
 
             {

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using HtmlAgilityPackCore;
 using NUnit.Framework;
 
-namespace HtmlAgilityPack.Tests
+namespace HtmlAgilityPackCore.Tests
 {
     [TestFixture]
     public class HtmlNode2
