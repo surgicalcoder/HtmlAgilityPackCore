@@ -18,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="files\CSS-Selector-Test-1.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="files\CSS-Selector-Test-2.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="files\mshome.htm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
