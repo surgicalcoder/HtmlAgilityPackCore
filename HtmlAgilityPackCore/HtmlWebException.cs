@@ -7,8 +7,6 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlWebException : Exception
     {
-        #region Constructors
-
         /// <summary>
         /// Creates an instance of the HtmlWebException.
         /// </summary>
@@ -17,7 +15,5 @@ namespace HtmlAgilityPackCore
             : base(message)
         {
         }
-
-        #endregion
     }
 }

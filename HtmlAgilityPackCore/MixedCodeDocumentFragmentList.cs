@@ -11,23 +11,13 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class MixedCodeDocumentFragmentList : IEnumerable
     {
-        #region Fields
-
         private MixedCodeDocument _doc;
         private IList<MixedCodeDocumentFragment> _items = new List<MixedCodeDocumentFragment>();
-
-        #endregion
-
-        #region Constructors
 
         internal MixedCodeDocumentFragmentList(MixedCodeDocument doc)
         {
             _doc = doc;
         }
-
-        #endregion
-
-        #region Properties
 
         ///<summary>
         /// Gets the Document
@@ -53,10 +43,6 @@ namespace HtmlAgilityPackCore
             get { return _items[index]; }
         }
 
-        #endregion
-
-        #region IEnumerable Members
-
         /// <summary>
         /// Gets an enumerator that can iterate through the fragment list.
         /// </summary>
@@ -64,10 +50,6 @@ namespace HtmlAgilityPackCore
         {
             return GetEnumerator();
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>
         /// Appends a fragment to the list of fragments.
@@ -143,10 +125,6 @@ namespace HtmlAgilityPackCore
             _items.RemoveAt(index);
         }
 
-        #endregion
-
-        #region Internal Methods
-
         internal void Clear()
         {
             _items.Clear();
@@ -170,33 +148,19 @@ namespace HtmlAgilityPackCore
             return -1;
         }
 
-        #endregion
-
-        #region Nested type: MixedCodeDocumentFragmentEnumerator
-
         /// <summary>
         /// Represents a fragment enumerator.
         /// </summary>
         public class MixedCodeDocumentFragmentEnumerator : IEnumerator
         {
-            #region Fields
-
             private int _index;
             private IList<MixedCodeDocumentFragment> _items;
-
-            #endregion
-
-            #region Constructors
 
             internal MixedCodeDocumentFragmentEnumerator(IList<MixedCodeDocumentFragment> items)
             {
                 _items = items;
                 _index = -1;
             }
-
-            #endregion
-
-            #region Properties
 
             /// <summary>
             /// Gets the current element in the collection.
@@ -205,10 +169,6 @@ namespace HtmlAgilityPackCore
             {
                 get { return (MixedCodeDocumentFragment) (_items[_index]); }
             }
-
-            #endregion
-
-            #region IEnumerator Members
 
             /// <summary>
             /// Gets the current element in the collection.
@@ -235,11 +195,7 @@ namespace HtmlAgilityPackCore
             {
                 _index = -1;
             }
-
-            #endregion
         }
-
-        #endregion
     }
 }
 #endif

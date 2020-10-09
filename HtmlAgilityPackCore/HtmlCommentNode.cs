@@ -7,23 +7,13 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlCommentNode : HtmlNode
     {
-        #region Fields
-
         private ReadOnlyMemory<char> _comment;
-
-        #endregion
-
-        #region Constructors
 
         internal HtmlCommentNode(HtmlDocument ownerdocument, int index)
             :
             base(HtmlNodeType.Comment, ownerdocument, index)
         {
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or Sets the comment text of the node.
@@ -74,7 +64,5 @@ namespace HtmlAgilityPackCore
                 return $"<!--{_comment.ToString()}-->".AsMemory();
             }
         }
-
-        #endregion
     }
 }

@@ -7,18 +7,12 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlParseError
     {
-        #region Fields
-
         private HtmlParseErrorCode _code;
         private int _line;
         private int _linePosition;
         private string _reason; // TODO
         private ReadOnlyMemory<char> _sourceText;
         private int _streamPosition;
-
-        #endregion
-
-        #region Constructors
 
         internal HtmlParseError(
             HtmlParseErrorCode code,
@@ -35,10 +29,6 @@ namespace HtmlAgilityPackCore
             _sourceText = sourceText;
             _reason = reason;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the type of error.
@@ -87,7 +77,5 @@ namespace HtmlAgilityPackCore
         {
             get { return _streamPosition; }
         }
-
-        #endregion
     }
 }

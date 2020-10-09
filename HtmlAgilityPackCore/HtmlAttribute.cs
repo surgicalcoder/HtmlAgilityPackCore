@@ -1,9 +1,13 @@
-#region
+﻿// Description: Html Agility Pack - HTML Parsers, selectors, traversors, manupulators.
+// Website & Documentation: http://html-agility-pack.net
+// Forum & Issues: https://github.com/zzzprojects/html-agility-pack
+// License: https://github.com/zzzprojects/html-agility-pack/blob/master/LICENSE
+// More projects: http://www.zzzprojects.com/
+// Copyright ©ZZZ Projects Inc. 2014 - 2017. All rights reserved.
 
 using System;
 using System.Diagnostics;
-
-#endregion
+using HtmlAgilityPackCore.Nodes;
 
 // ReSharper disable InconsistentNaming
 
@@ -15,31 +19,14 @@ namespace HtmlAgilityPackCore
     [DebuggerDisplay("Name: {OriginalName}, Value: {Value}")]
     public class HtmlAttribute : IComparable
     {
-        #region Fields
-
-        internal int _lineposition;
-        internal string _name;
         internal int _namelength;
         internal int _namestartindex;
-        internal HtmlDocument _ownerdocument; // attribute can exists without a node
-        internal HtmlNode _ownernode;
-        internal int _streamposition;
         internal string _value;
-        internal int _valuelength;
-        internal int _valuestartindex;
-
-        #endregion
-
-        #region Constructors
 
         internal HtmlAttribute(HtmlDocument ownerdocument)
         {
-            _ownerdocument = ownerdocument;
+            OwnerDocument = ownerdocument;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the line number of this attribute in the document.
@@ -49,64 +36,59 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the column number of this attribute in the document.
         /// </summary>
-        public int LinePosition => _lineposition;
+        public int LinePosition { get; internal set; }
 
         /// <summary>
         /// Gets the stream position of the value of this attribute in the document, relative to the start of the document.
         /// </summary>
-        public int ValueStartIndex => _valuestartindex;
+        public int ValueStartIndex { get; internal set; }
 
         /// <summary>
         /// Gets the length of the value.
         /// </summary>
-        public int ValueLength => _valuelength;
+        public int ValueLength { get; internal set; }
 
         public bool UseOriginalName { get; set; } = false;
 
-	    /// <summary>
-		/// Gets the qualified name of the attribute.
-		/// </summary>
-		public string Name
+        /// <summary>
+        /// Gets the qualified name of the attribute.
+        /// </summary>
+        public string Name
         {
             get
             {
-                if (_name == null)
+                if (OriginalName == null)
                 {
-                    _name = _ownerdocument.Text.Slice(_namestartindex, _namelength).ToString(); // TODO
+                    OriginalName = OwnerDocument.Text.Substring(_namestartindex, _namelength);
                 }
 
-	            return UseOriginalName ? _name : _name.ToLowerInvariant();
-			}
+                return UseOriginalName ? OriginalName : OriginalName.ToLowerInvariant();
+            }
             set
             {
-                _name = value ?? throw new ArgumentNullException("value");
-                _ownernode?.SetChanged();
+                OriginalName = value ?? throw new ArgumentNullException("value");
+
+                if (OwnerNode != null)
+                {
+                    OwnerNode.IsChanged = true;
+                }
             }
         }
 
         /// <summary>
         /// Name of attribute with original case
         /// </summary>
-        public string OriginalName
-        {
-            get { return _name; }
-        }
+        public string OriginalName { get; internal set; }
 
         /// <summary>
         /// Gets the HTML document to which this attribute belongs.
         /// </summary>
-        public HtmlDocument OwnerDocument
-        {
-            get { return _ownerdocument; }
-        }
+        public HtmlDocument OwnerDocument { get; }
 
         /// <summary>
         /// Gets the HTML node to which this attribute belongs.
         /// </summary>
-        public HtmlNode OwnerNode
-        {
-            get { return _ownernode; }
-        }
+        public HtmlNode OwnerNode { get; internal set; }
 
         /// <summary>
         /// Specifies what type of quote the data should be wrapped in
@@ -116,32 +98,25 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the stream position of this attribute in the document, relative to the start of the document.
         /// </summary>
-        public int StreamPosition
-        {
-            get { return _streamposition; }
-        }
+        public int StreamPosition { get; internal set; }
 
         /// <summary>
         /// Gets or sets the value of the attribute.
         /// </summary>
-        public string Value
+        public string Value // todo
         {
             get
             {
                 // A null value has been provided, the attribute should be considered as "hidden"
-                if (_value == null && !_ownerdocument.Text.IsEmpty && _valuestartindex == 0 && _valuelength == 0)
+                if (_value == null && OwnerDocument.Text == null && ValueStartIndex == 0 && ValueLength == 0)
                 {
                     return null;
                 }
 
                 if (_value == null)
                 {
-                    _value = _ownerdocument.Text.Slice(_valuestartindex, _valuelength).ToString(); // TODO
-
-                    if (!_ownerdocument.BackwardCompatibility)
-                    {
-                        _value = HtmlEntity.DeEntitize(_value);
-                    }
+                    _value = OwnerDocument.Text.Substring(ValueStartIndex, ValueLength);
+                    _value = HtmlEntity.DeEntitize(_value);
                 }
 
                 return _value;
@@ -150,9 +125,9 @@ namespace HtmlAgilityPackCore
             {
                 _value = value;
 
-                if (_ownernode != null)
+                if (OwnerNode != null)
                 {
-                    _ownernode.SetChanged();
+                    OwnerNode.IsChanged = true;
                 }
             }
         }
@@ -160,20 +135,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the DeEntitized value of the attribute.
         /// </summary>
-        public string DeEntitizeValue
-        {
-            get { return HtmlEntity.DeEntitize(Value); }
-        }
-
-        internal string XmlName
-        {
-            get { return HtmlDocument.GetXmlName(Name, true, OwnerDocument.OptionPreserveXmlNamespaces); }
-        }
-
-        internal string XmlValue
-        {
-            get { return Value; }
-        }
+        public string DeEntitizeValue => HtmlEntity.DeEntitize(Value);
 
         /// <summary>
         /// Gets a valid XPath string that points to this Attribute
@@ -182,14 +144,10 @@ namespace HtmlAgilityPackCore
         {
             get
             {
-                string basePath = (OwnerNode == null) ? "/" : OwnerNode.XPath + "/";
+                string basePath = (OwnerNode == null) ? "/" : $"{OwnerNode.XPath}/";
                 return basePath + GetRelativeXpath();
             }
         }
-
-        #endregion
-
-        #region IComparable Members
 
         /// <summary>
         /// Compares the current instance with another attribute. Comparison is based on attributes' name.
@@ -198,7 +156,8 @@ namespace HtmlAgilityPackCore
         /// <returns>A 32-bit signed integer that indicates the relative order of the names comparison.</returns>
         public int CompareTo(object obj)
         {
-            HtmlAttribute att = obj as HtmlAttribute;
+            var att = obj as HtmlAttribute;
+            
             if (att == null)
             {
                 throw new ArgumentException("obj");
@@ -207,17 +166,13 @@ namespace HtmlAgilityPackCore
             return Name.CompareTo(att.Name);
         }
 
-        #endregion
-
-        #region Public Methods
-
         /// <summary>
         /// Creates a duplicate of this attribute.
         /// </summary>
         /// <returns>The cloned attribute.</returns>
         public HtmlAttribute Clone()
         {
-            HtmlAttribute att = new HtmlAttribute(_ownerdocument);
+            HtmlAttribute att = new HtmlAttribute(OwnerDocument);
             att.Name = Name;
             att.Value = Value;
             att.QuoteType = QuoteType;
@@ -229,12 +184,8 @@ namespace HtmlAgilityPackCore
         /// </summary>
         public void Remove()
         {
-            _ownernode.Attributes.Remove(this);
+            OwnerNode.Attributes.Remove(this);
         }
-
-        #endregion
-
-        #region Private Methods
 
         private string GetRelativeXpath()
         {
@@ -254,8 +205,6 @@ namespace HtmlAgilityPackCore
 
             return "@" + Name + "[" + i + "]";
         }
-
-        #endregion
     }
 
     /// <summary>

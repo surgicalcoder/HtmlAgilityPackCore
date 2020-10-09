@@ -1,37 +1,37 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace HtmlAgilityPackCore
+namespace HtmlAgilityPackCore.Nodes
 {
     /// <summary>
     /// Represents a combined list and collection of HTML nodes.
     /// </summary>
-    public class HtmlNodeCollection : IList<HtmlNode>
+    public class HtmlNodeCollection : IList<HtmlNodeBase>
     {
-        private readonly HtmlNode _parentnode;
-        private readonly List<HtmlNode> _items = new List<HtmlNode>();
+        private readonly IHtmlNodeContainer parentnode;
+        private readonly List<HtmlNodeBase> _items = new List<HtmlNodeBase>();
 
         /// <summary>
         /// Initialize the HtmlNodeCollection with the base parent node
         /// </summary>
         /// <param name="parentnode">The base node of the collection</param>
-        public HtmlNodeCollection(HtmlNode parentnode)
+        public HtmlNodeCollection(IHtmlNodeContainer parentnode)
         {
-            _parentnode = parentnode; // may be null
+            this.parentnode = parentnode; // may be null
         }
 
         /// <summary>
         /// Gets a given node from the list.
         /// </summary>
-        public int this[HtmlNode node]
+        public int this[HtmlNodeBase node]
         {
             get
             {
                 int index = GetNodeIndex(node);
                 if (index == -1)
                     throw new ArgumentOutOfRangeException("node",
-                        "Node \"" + node.CloneNode(false).OuterHtml +
+                        "Node \"" + node.Clone(false).OuterHtml +
                         "\" was not found in the collection");
                 return index;
             }
@@ -42,7 +42,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="nodeName"></param>
         /// <returns></returns>
-        public HtmlNode this[string nodeName]
+        public HtmlNodeBase this[string nodeName]
         {
             get
             {
@@ -73,7 +73,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the node at the specified index.
         /// </summary>
-        public HtmlNode this[int index]
+        public HtmlNodeBase this[int index]
         {
             get { return _items[index]; }
             set { _items[index] = value; }
@@ -83,7 +83,7 @@ namespace HtmlAgilityPackCore
         /// Add node to the collection
         /// </summary>
         /// <param name="node"></param>
-        public void Add(HtmlNode node)
+        public void Add(HtmlNodeBase node)
         {
             Add(node, true);
         }
@@ -93,13 +93,13 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="node"></param>
         /// <param name="setParent"></param>
-        public void Add(HtmlNode node, bool setParent)
+        public void Add(HtmlNodeBase node, bool setParent)
         {
             _items.Add(node);
 
             if (setParent)
             {
-                node.ParentNode = _parentnode;
+                node.ParentNode = parentnode;
             }
         }
 
@@ -108,7 +108,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         public void Clear()
         {
-            foreach (HtmlNode node in _items)
+            foreach (HtmlNodeBase node in _items)
             {
                 node.ParentNode = null;
                 node.NextSibling = null;
@@ -123,7 +123,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Contains(HtmlNode item)
+        public bool Contains(HtmlNodeBase item)
         {
             return _items.Contains(item);
         }
@@ -133,7 +133,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="array"></param>
         /// <param name="arrayIndex"></param>
-        public void CopyTo(HtmlNode[] array, int arrayIndex)
+        public void CopyTo(HtmlNodeBase[] array, int arrayIndex)
         {
             _items.CopyTo(array, arrayIndex);
         }
@@ -142,7 +142,7 @@ namespace HtmlAgilityPackCore
         /// Get Enumerator
         /// </summary>
         /// <returns></returns>
-        IEnumerator<HtmlNode> IEnumerable<HtmlNode>.GetEnumerator()
+        IEnumerator<HtmlNodeBase> IEnumerable<HtmlNodeBase>.GetEnumerator()
         {
             return _items.GetEnumerator();
         }
@@ -161,7 +161,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public int IndexOf(HtmlNode item)
+        public int IndexOf(HtmlNodeBase item)
         {
             return _items.IndexOf(item);
         }
@@ -171,10 +171,10 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="index"></param>
         /// <param name="node"></param>
-        public void Insert(int index, HtmlNode node)
+        public void Insert(int index, HtmlNodeBase node)
         {
-            HtmlNode next = null;
-            HtmlNode prev = null;
+            HtmlNodeBase next = null;
+            HtmlNodeBase prev = null;
 
             if (index > 0)
                 prev = _items[index - 1];
@@ -189,26 +189,26 @@ namespace HtmlAgilityPackCore
                 if (node == prev)
                     throw new InvalidProgramException("Unexpected error.");
 
-                prev._nextnode = node;
+                prev.NextSibling = node;
             }
 
             if (next != null)
-                next._prevnode = node;
+                next.PreviousSibling = node;
 
-            node._prevnode = prev;
+            node.PreviousSibling = prev;
             if (next == node)
                 throw new InvalidProgramException("Unexpected error.");
 
-            node._nextnode = next; 
-			node.SetParent(_parentnode);
-		}
+            node.NextSibling = next;
+            node.SetParent(parentnode);
+        }
 
         /// <summary>
         /// Remove node
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool Remove(HtmlNode item)
+        public bool Remove(HtmlNodeBase item)
         {
             int i = _items.IndexOf(item);
             RemoveAt(i);
@@ -216,17 +216,17 @@ namespace HtmlAgilityPackCore
         }
 
         /// <summary>
-        /// Remove <see cref="HtmlNode"/> at index
+        /// Remove <see cref="HtmlNodeBase"/> at index
         /// </summary>
         /// <param name="index"></param>
         public void RemoveAt(int index)
         {
-            HtmlNode next = null;
-            HtmlNode prev = null;
-            HtmlNode oldnode = _items[index];
+            HtmlNodeBase next = null;
+            HtmlNodeBase prev = null;
+            HtmlNodeBase oldnode = _items[index];
 
             // KEEP a reference since it will be set to null
-            var parentNode = _parentnode ?? oldnode._parentnode;
+            var parentNode = parentnode ?? oldnode.ParentNode;
 
             if (index > 0)
                 prev = _items[index - 1];
@@ -240,19 +240,19 @@ namespace HtmlAgilityPackCore
             {
                 if (next == prev)
                     throw new InvalidProgramException("Unexpected error.");
-                prev._nextnode = next;
+                prev.NextSibling = next;
             }
 
             if (next != null)
-                next._prevnode = prev;
+                next.PreviousSibling = prev;
 
-            oldnode._prevnode = null;
-            oldnode._nextnode = null;
-            oldnode._parentnode = null;
+            oldnode.PreviousSibling = null;
+            oldnode.NextSibling = null;
+            oldnode.ParentNode = null;
 
             if (parentNode != null)
             {
-                parentNode.SetChanged();
+                parentNode.IsChanged = true;
             }
         }
 
@@ -262,14 +262,20 @@ namespace HtmlAgilityPackCore
         /// <param name="items"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static HtmlNode FindFirst(HtmlNodeCollection items, string name)
+        public static HtmlNodeBase FindFirst(HtmlNodeCollection items, string name)
         {
-            foreach (HtmlNode node in items)
+            foreach (HtmlNodeBase node in items)
             {
                 if (node.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return node;
-                if (!node.HasChildNodes) continue;
-                HtmlNode returnNode = FindFirst(node.ChildNodes, name);
+
+                HtmlNode normalNode = node as HtmlNode;
+                if (normalNode == null || !normalNode.HasChildNodes)
+                {
+                    continue;
+                }
+
+                HtmlNodeBase returnNode = FindFirst(normalNode.ChildNodes, name);
                 if (returnNode != null)
                     return returnNode;
             }
@@ -281,21 +287,21 @@ namespace HtmlAgilityPackCore
         /// Add node to the end of the collection
         /// </summary>
         /// <param name="node"></param>
-        public void Append(HtmlNode node)
+        public void Append(HtmlNodeBase node)
         {
-            HtmlNode last = null;
+            HtmlNodeBase last = null;
             if (_items.Count > 0)
                 last = _items[_items.Count - 1];
 
             _items.Add(node);
-            node._prevnode = last;
-            node._nextnode = null;
-	        node.SetParent(_parentnode);
-			if (last == null) return;
+            node.PreviousSibling = last;
+            node.NextSibling = null;
+            node.SetParent(parentnode);
+            if (last == null) return;
             if (last == node)
                 throw new InvalidProgramException("Unexpected error.");
 
-            last._nextnode = node;
+            last.NextSibling = node;
         }
 
         /// <summary>
@@ -303,7 +309,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public HtmlNode FindFirst(string name)
+        public HtmlNodeBase FindFirst(string name)
         {
             return FindFirst(this, name);
         }
@@ -313,7 +319,7 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public int GetNodeIndex(HtmlNode node)
+        public int GetNodeIndex(HtmlNodeBase node)
         {
             // TODO: should we rewrite this? what would be the key of a node?
             for (int i = 0; i < _items.Count; i++)
@@ -326,9 +332,9 @@ namespace HtmlAgilityPackCore
         /// Add node to the beginning of the collection
         /// </summary>
         /// <param name="node"></param>
-        public void Prepend(HtmlNode node)
+        public void Prepend(HtmlNodeBase node)
         {
-            HtmlNode first = null;
+            HtmlNodeBase first = null;
             if (_items.Count > 0)
                 first = _items[0];
 
@@ -336,12 +342,12 @@ namespace HtmlAgilityPackCore
 
             if (node == first)
                 throw new InvalidProgramException("Unexpected error.");
-            node._nextnode = first;
-            node._prevnode = null;
-	        node.SetParent(_parentnode);
+            node.NextSibling = first;
+            node.PreviousSibling = null;
+            node.SetParent(parentnode);
 
-			if (first != null)
-                first._prevnode = node;
+            if (first != null)
+                first.PreviousSibling = node;
         }
 
         /// <summary>
@@ -360,11 +366,11 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="index"></param>
         /// <param name="node"></param>
-        public void Replace(int index, HtmlNode node)
+        public void Replace(int index, HtmlNodeBase node)
         {
-            HtmlNode next = null;
-            HtmlNode prev = null;
-            HtmlNode oldnode = _items[index];
+            HtmlNodeBase next = null;
+            HtmlNodeBase prev = null;
+            HtmlNodeBase oldnode = _items[index];
 
             if (index > 0)
                 prev = _items[index - 1];
@@ -378,56 +384,80 @@ namespace HtmlAgilityPackCore
             {
                 if (node == prev)
                     throw new InvalidProgramException("Unexpected error.");
-                prev._nextnode = node;
+                prev.NextSibling = node;
             }
 
             if (next != null)
-                next._prevnode = node;
+                next.PreviousSibling = node;
 
-            node._prevnode = prev;
+            node.PreviousSibling = prev;
 
             if (next == node)
                 throw new InvalidProgramException("Unexpected error.");
 
-            node._nextnode = next;
-	        node.SetParent(_parentnode);
+            node.NextSibling = next;
+            node.SetParent(parentnode);
 
-			oldnode._prevnode = null;
-            oldnode._nextnode = null;
-            oldnode._parentnode = null;
+            oldnode.PreviousSibling = null;
+            oldnode.NextSibling = null;
+            oldnode.ParentNode = null;
         }
 
         /// <summary>
         /// Get all node descended from this collection
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<HtmlNode> Descendants()
+        public IEnumerable<HtmlNodeBase> Descendants()
         {
-            foreach (HtmlNode item in _items)
-            foreach (HtmlNode n in item.Descendants())
-                yield return n;
+            foreach (HtmlNodeBase item in _items)
+            {
+                HtmlNode normalNode = item as HtmlNode;
+                if (normalNode != null)
+                {
+                    foreach (HtmlNodeBase n in normalNode.Descendants())
+                    {
+                        yield return n;
+                    }
+                }
+            }
         }
 
         /// <summary>
         /// Get all node descended from this collection with matching name
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<HtmlNode> Descendants(string name)
+        public IEnumerable<HtmlNodeBase> Descendants(string name)
         {
-            foreach (HtmlNode item in _items)
-            foreach (HtmlNode n in item.Descendants(name))
-                yield return n;
+            foreach (HtmlNodeBase item in _items)
+            {
+                HtmlNode normalNode = item as HtmlNode;
+                if (normalNode != null)
+                {
+                    foreach (HtmlNodeBase n in normalNode.Descendants(name))
+                    {
+                        yield return n;
+                    }
+                }
+            }
         }
 
         /// <summary>
         /// Gets all first generation elements in collection
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<HtmlNode> Elements()
+        public IEnumerable<HtmlNodeBase> Elements()
         {
-            foreach (HtmlNode item in _items)
-            foreach (HtmlNode n in item.ChildNodes)
-                yield return n;
+            foreach (HtmlNodeBase item in _items)
+            {
+                HtmlNode normalNode = item as HtmlNode;
+                if (normalNode != null)
+                {
+                    foreach (HtmlNodeBase n in normalNode.ChildNodes)
+                    {
+                        yield return n;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -435,22 +465,38 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IEnumerable<HtmlNode> Elements(string name)
+        public IEnumerable<HtmlNodeBase> Elements(string name)
         {
-            foreach (HtmlNode item in _items)
-            foreach (HtmlNode n in item.Elements(name))
-                yield return n;
+            foreach (HtmlNodeBase item in _items)
+            {
+                HtmlNode normalNode = item as HtmlNode;
+                if (normalNode != null)
+                {
+                    foreach (HtmlNodeBase n in normalNode.Elements(name))
+                    {
+                        yield return n;
+                    }
+                }
+            }
         }
 
         /// <summary>
         /// All first generation nodes in collection
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<HtmlNode> Nodes()
+        public IEnumerable<HtmlNodeBase> Nodes()
         {
-            foreach (HtmlNode item in _items)
-            foreach (HtmlNode n in item.ChildNodes)
-                yield return n;
+            foreach (HtmlNodeBase item in _items)
+            {
+                HtmlNode normalNode = item as HtmlNode;
+                if (normalNode != null)
+                {
+                    foreach (HtmlNodeBase n in normalNode.ChildNodes)
+                    {
+                        yield return n;
+                    }
+                }
+            }
         }
     }
 }

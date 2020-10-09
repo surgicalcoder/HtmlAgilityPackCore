@@ -1,6 +1,4 @@
-﻿#if !METRO
-
-using System.Xml.XPath;
+﻿using System.Xml.XPath;
 
 namespace HtmlAgilityPackCore
 {
@@ -16,5 +14,3 @@ namespace HtmlAgilityPackCore
         }
     }
 }
-
-#endif

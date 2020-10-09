@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text;
-#if !METRO
 using System;
 
 namespace HtmlAgilityPackCore
@@ -10,8 +9,6 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class MixedCodeDocument
     {
-        #region Fields
-
         private int _c;
         internal MixedCodeDocumentFragmentList _codefragments;
         private MixedCodeDocumentFragment _currentfragment;
@@ -47,10 +44,6 @@ namespace HtmlAgilityPackCore
 
         private string TokenTextBlock = "TextBlock({0})";
 
-        #endregion
-
-        #region Constructors
-
         /// <summary>
         /// Creates a mixed code document instance.
         /// </summary>
@@ -60,10 +53,6 @@ namespace HtmlAgilityPackCore
             _textfragments = new MixedCodeDocumentFragmentList(this);
             _fragments = new MixedCodeDocumentFragmentList(this);
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the code represented by the mixed code document seen as a template.
@@ -124,10 +113,6 @@ namespace HtmlAgilityPackCore
         {
             get { return _textfragments; }
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>
         /// Create a code fragment instances.
@@ -371,10 +356,6 @@ namespace HtmlAgilityPackCore
             writer.Flush();
         }
 
-        #endregion
-
-        #region Internal Methods
-
         internal MixedCodeDocumentFragment CreateFragment(MixedCodeDocumentFragmentType type)
         {
             switch (type)
@@ -396,10 +377,6 @@ namespace HtmlAgilityPackCore
                 return _streamencoding;
             return Encoding.UTF8;
         }
-
-        #endregion
-
-        #region Private Methods
 
         private void IncrementPosition()
         {
@@ -471,17 +448,10 @@ namespace HtmlAgilityPackCore
             _currentfragment.Length = 0;
         }
 
-        #endregion
-
-        #region Nested type: ParseState
-
         private enum ParseState
         {
             Text,
             Code
         }
-
-        #endregion
     }
 }
-#endif

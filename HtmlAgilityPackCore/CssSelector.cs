@@ -2,21 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HtmlAgilityPackCore.Nodes;
 using HtmlAgilityPackCore.Selectors;
 
 namespace HtmlAgilityPackCore
 {
     public abstract class CssSelector
     {
-        #region Constructor
-
         protected CssSelector()
         {
             SubSelectors = new List<CssSelector>();
         }
-        #endregion
 
-        #region Properties
         private static readonly CssSelector[] Selectors = FindSelectors();
         public abstract string Token { get; }
         protected virtual bool IsSubSelector => false;
@@ -24,9 +21,7 @@ namespace HtmlAgilityPackCore
 
         public IList<CssSelector> SubSelectors { get; set; }
         public string Selector { get; set; }
-        #endregion
 
-        #region Methods
         protected internal abstract IEnumerable<HtmlNode> FilterCore(IEnumerable<HtmlNode> currentNodes);
 
         public IEnumerable<HtmlNode> Filter(IEnumerable<HtmlNode> currentNodes)
@@ -86,7 +81,5 @@ namespace HtmlAgilityPackCore
             var rt = types.Select(Activator.CreateInstance).Cast<CssSelector>().ToArray();
             return rt;
         }
-
-        #endregion
     }
 }

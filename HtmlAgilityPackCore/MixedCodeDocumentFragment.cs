@@ -1,24 +1,16 @@
-#if !METRO
-namespace HtmlAgilityPackCore
+﻿namespace HtmlAgilityPackCore
 {
     /// <summary>
     /// Represents a base class for fragments in a mixed code document.
     /// </summary>
     public abstract class MixedCodeDocumentFragment
     {
-        #region Fields
-
         internal MixedCodeDocument Doc;
         private string _fragmentText;
         internal int Index;
         internal int Length;
         private int _line;
-        internal int _lineposition;
         internal MixedCodeDocumentFragmentType _type;
-
-        #endregion
-
-        #region Constructors
 
         internal MixedCodeDocumentFragment(MixedCodeDocument doc, MixedCodeDocumentFragmentType type)
         {
@@ -38,10 +30,6 @@ namespace HtmlAgilityPackCore
             Doc._fragments.Append(this);
         }
 
-        #endregion
-
-        #region Properties
-
         /// <summary>
         /// Gets the fragement text.
         /// </summary>
@@ -51,7 +39,7 @@ namespace HtmlAgilityPackCore
             {
                 if (_fragmentText == null)
                 {
-                    _fragmentText = Doc._text.Slice(Index, Length).ToString(); //TODO
+                    _fragmentText = Doc._text.Substring(Index, Length);
                 }
 
                 return _fragmentText;
@@ -79,10 +67,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the line position (column) of the fragment.
         /// </summary>
-        public int LinePosition
-        {
-            get { return _lineposition; }
-        }
+        public int LinePosition { get; internal set; }
 
         /// <summary>
         /// Gets the fragment position in the document's stream.
@@ -91,8 +76,5 @@ namespace HtmlAgilityPackCore
         {
             get { return Index; }
         }
-
-        #endregion
     }
 }
-#endif

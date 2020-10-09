@@ -1,4 +1,4 @@
-namespace HtmlAgilityPackCore
+﻿namespace HtmlAgilityPackCore.Nodes
 {
     /// <summary>
     /// Represents the type of a node.

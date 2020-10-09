@@ -1,6 +1,15 @@
+﻿// Description: Html Agility Pack - HTML Parsers, selectors, traversors, manupulators.
+// Website & Documentation: http://html-agility-pack.net
+// Forum & Issues: https://github.com/zzzprojects/html-agility-pack
+// License: https://github.com/zzzprojects/html-agility-pack/blob/master/LICENSE
+// More projects: http://www.zzzprojects.com/
+// Copyright ©ZZZ Projects Inc. 2014 - 2017. All rights reserved.
+
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+
 namespace HtmlAgilityPackCore
 {
     /// <summary>
@@ -11,7 +20,9 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlEntity
     {
-        #region Static Members
+#if !FX20 && !FX35
+        public static bool UseWebUtility { get; set; }
+#endif
 
         private static readonly int _maxEntitySize;
         private static Dictionary<int, string> _entityName;
@@ -33,16 +44,10 @@ namespace HtmlAgilityPackCore
             get { return _entityValue; }
         }
 
-        #endregion
-
-        #region Constructors
-
         static HtmlEntity()
         {
             _entityName = new Dictionary<int, string>();
             _entityValue = new Dictionary<string, int>();
-
-            #region Entities Definition
 
             _entityValue.Add("quot", 34); // quotation mark = APL quote, U+0022 ISOnum 
             _entityName.Add(34, "quot");
@@ -560,17 +565,11 @@ namespace HtmlAgilityPackCore
             _entityName.Add(8364, "euro");
 
             _maxEntitySize = 8 + 1; // we add the # char
-
-            #endregion
         }
 
         private HtmlEntity()
         {
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>
         /// Replace known entities by characters.
@@ -619,28 +618,27 @@ namespace HtmlAgilityPackCore
                                 {
                                     if (entity[0] == '#')
                                     {
-                                        var e = entity.ToString().AsMemory();
+                                        string e = entity.ToString();
                                         try
                                         {
-                                            
-                                            var codeStr = e.Slice(1).Trim();
+                                            string codeStr = e.Substring(1).Trim();
                                             int fromBase;
-                                            if (codeStr.Span.StartsWith("x".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                                            if (codeStr.StartsWith("x", StringComparison.OrdinalIgnoreCase))
                                             {
                                                 fromBase = 16;
-                                                codeStr = codeStr.Slice(1);
+                                                codeStr = codeStr.Substring(1);
                                             }
                                             else
                                             {
                                                 fromBase = 10;
                                             }
 
-                                            int code = Convert.ToInt32(codeStr.ToString(), fromBase);
+                                            int code = Convert.ToInt32(codeStr, fromBase);
                                             sb.Append(Convert.ToChar(code));
                                         }
                                         catch
                                         {
-                                            sb.Append($"&#{e.ToString()};");
+                                            sb.Append("&#" + e + ";");
                                         }
                                     }
                                     else
@@ -702,27 +700,32 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="node">The node to entitize.</param>
         /// <returns>An entitized cloned node.</returns>
-        public static HtmlNode Entitize(HtmlNode node)
+        public static HtmlNodeBase Entitize(HtmlNodeBase node)
         {
             if (node == null)
             {
                 throw new ArgumentNullException("node");
             }
 
-            HtmlNode result = node.CloneNode(true);
-            if (result.HasAttributes)
-                Entitize(result.Attributes);
+            HtmlNodeBase result = node.Clone(true);
 
-            if (result.HasChildNodes)
+            HtmlNode normalResult = result as HtmlNode;
+            if (normalResult != null)
             {
-                Entitize(result.ChildNodes);
-            }
-            else
-            {
-                if (result.NodeType == HtmlNodeType.Text)
+                if (normalResult.HasAttributes)
                 {
-                    ((HtmlTextNode) result).Text = Entitize(((HtmlTextNode) result).Text.ToString(), true, true).AsMemory(); // TODO
+                    Entitize(normalResult.Attributes);
                 }
+                if (normalResult.HasChildNodes)
+                {
+                    Entitize(normalResult.ChildNodes);
+                }
+            }
+
+            HtmlText textResult = result as HtmlText;
+            if (textResult != null)
+            {
+                textResult.Text = Entitize(textResult.Text, true, true);
             }
 
             return result;
@@ -758,14 +761,14 @@ namespace HtmlAgilityPackCore
         /// <param name="entitizeQuotAmpAndLtGt">If set to true, the [quote], [ampersand], [lower than] and [greather than] characters will be entitized.</param>
         /// <returns>The result text</returns>
         public static string Entitize(string text, bool useNames, bool entitizeQuotAmpAndLtGt)
-//        _entityValue.Add("quot", 34);    // quotation mark = APL quote, U+0022 ISOnum 
-//        _entityName.Add(34, "quot");
-//        _entityValue.Add("amp", 38);    // ampersand, U+0026 ISOnum 
-//        _entityName.Add(38, "amp");
-//        _entityValue.Add("lt", 60);    // less-than sign, U+003C ISOnum 
-//        _entityName.Add(60, "lt");
-//        _entityValue.Add("gt", 62);    // greater-than sign, U+003E ISOnum 
-//        _entityName.Add(62, "gt");
+        //        _entityValue.Add("quot", 34);    // quotation mark = APL quote, U+0022 ISOnum 
+        //        _entityName.Add(34, "quot");
+        //        _entityValue.Add("amp", 38);    // ampersand, U+0026 ISOnum 
+        //        _entityName.Add(38, "amp");
+        //        _entityValue.Add("lt", 60);    // less-than sign, U+003C ISOnum 
+        //        _entityName.Add(60, "lt");
+        //        _entityValue.Add("gt", 62);    // greater-than sign, U+003E ISOnum 
+        //        _entityName.Add(62, "gt");
         {
             if (text == null)
                 return null;
@@ -774,36 +777,52 @@ namespace HtmlAgilityPackCore
                 return text;
 
             StringBuilder sb = new StringBuilder(text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                int code = text[i];
-                if ((code > 127) ||
-                    (entitizeQuotAmpAndLtGt && ((code == 34) || (code == 38) || (code == 60) || (code == 62))))
-                {
-                    string entity;
-                    EntityName.TryGetValue(code, out entity);
 
-                    if ((entity == null) || (!useNames))
+#if !FX20 && !FX35
+            if (UseWebUtility)
+            {
+                TextElementEnumerator enumerator = StringInfo.GetTextElementEnumerator(text);
+                while (enumerator.MoveNext())
+                {
+                    sb.Append(System.Net.WebUtility.HtmlEncode(enumerator.GetTextElement()));
+                }
+            }
+            else
+            {
+#endif
+                for (int i = 0; i < text.Length; i++)
+                {
+                    int code = text[i];
+                    if ((code > 127) ||
+                        (entitizeQuotAmpAndLtGt && ((code == 34) || (code == 38) || (code == 60) || (code == 62))))
                     {
-                        sb.Append("&#" + code + ";");
+                        string entity = null;
+
+                        if (useNames)
+                        {
+                            EntityName.TryGetValue(code, out entity);
+                        }
+
+                        if (entity == null)
+                        {
+                            sb.Append("&#" + code + ";");
+                        }
+                        else
+                        {
+                            sb.Append("&" + entity + ";");
+                        }
                     }
                     else
                     {
-                        sb.Append("&" + entity + ";");
+                        sb.Append(text[i]);
                     }
                 }
-                else
-                {
-                    sb.Append(text[i]);
-                }
+#if !FX20 && !FX35
             }
+#endif
 
             return sb.ToString();
         }
-
-        #endregion
-
-        #region Private Methods
 
         private static void Entitize(HtmlAttributeCollection collection)
         {
@@ -820,35 +839,16 @@ namespace HtmlAgilityPackCore
 
         private static void Entitize(HtmlNodeCollection collection)
         {
-            foreach (HtmlNode node in collection)
+            foreach (HtmlNodeBase node in collection)
             {
-                if (node.HasAttributes)
-                    Entitize(node.Attributes);
-
-                if (node.HasChildNodes)
-                {
-                    Entitize(node.ChildNodes);
-                }
-                else
-                {
-                    if (node.NodeType == HtmlNodeType.Text)
-                    {
-                        ((HtmlTextNode) node).Text = Entitize(((HtmlTextNode) node).Text.ToString(), true, true).AsMemory(); // TODO
-                    }
-                }
+                Entitize(node);
             }
         }
-
-        #endregion
-
-        #region Nested type: ParseState
 
         private enum ParseState
         {
             Text,
             EntityStart
         }
-
-        #endregion
     }
 }

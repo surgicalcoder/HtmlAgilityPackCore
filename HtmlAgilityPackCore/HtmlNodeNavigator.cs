@@ -1,9 +1,8 @@
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.XPath;
-#if !METRO
-using System;
 
 #pragma warning disable 0649
 namespace HtmlAgilityPackCore
@@ -13,25 +12,21 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlNodeNavigator : XPathNavigator
     {
-        #region Fields
-
         private int _attindex;
-        private HtmlNode _currentnode;
-        private readonly HtmlDocument _doc = new HtmlDocument();
-        private readonly HtmlNameTable _nametable = new HtmlNameTable();
+        private HtmlNodeBase _currentnode;
+        private readonly HtmlDocument _doc;
+        private readonly HtmlNameTable _nametable;
 
         internal bool Trace;
 
-        #endregion
-
-        #region Constructors
-
         internal HtmlNodeNavigator()
         {
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
             Reset();
         }
 
-        internal HtmlNodeNavigator(HtmlDocument doc, HtmlNode currentNode)
+        internal HtmlNodeNavigator(HtmlDocument doc, HtmlNodeBase currentNode)
         {
             if (currentNode == null)
             {
@@ -43,11 +38,18 @@ namespace HtmlAgilityPackCore
                 throw new ArgumentException(HtmlDocument.HtmlExceptionRefNotChild);
             }
 
+            if (doc == null)
+            {
+                // keep in message, currentNode.OwnerDocument also null.
+                throw new Exception("Oops! The HtmlDocument cannot be null.");
+            }
+
 #if TRACE_NAVIGATOR
             InternalTrace(null);
 #endif
 
             _doc = doc;
+            _nametable = new HtmlNameTable();
             Reset();
             _currentnode = currentNode;
         }
@@ -73,7 +75,9 @@ namespace HtmlAgilityPackCore
         /// <param name="stream">The input stream.</param>
         public HtmlNodeNavigator(Stream stream)
         {
-            _doc.Load(stream).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(stream);
             Reset();
         }
 
@@ -84,7 +88,9 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
         public HtmlNodeNavigator(Stream stream, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(stream, detectEncodingFromByteOrderMarks).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(stream, detectEncodingFromByteOrderMarks);
             Reset();
         }
 
@@ -95,7 +101,9 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding)
         {
-            _doc.Load(stream, encoding).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(stream, encoding);
             Reset();
         }
 
@@ -107,7 +115,9 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the stream.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks);
             Reset();
         }
 
@@ -120,7 +130,9 @@ namespace HtmlAgilityPackCore
         /// <param name="buffersize">The minimum buffer size.</param>
         public HtmlNodeNavigator(Stream stream, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
-            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks, buffersize).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(stream, encoding, detectEncodingFromByteOrderMarks, buffersize);
             Reset();
         }
 
@@ -130,17 +142,22 @@ namespace HtmlAgilityPackCore
         /// <param name="reader">The TextReader used to feed the HTML data into the document.</param>
         public HtmlNodeNavigator(TextReader reader)
         {
-            _doc.Load(reader).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(reader);
             Reset();
         }
 
+#if !(NETSTANDARD1_3 || NETSTANDARD1_6)
         /// <summary>
         /// Initializes a new instance of the HtmlNavigator and loads an HTML document from a file.
         /// </summary>
         /// <param name="path">The complete file path to be read.</param>
         public HtmlNodeNavigator(string path)
         {
-            _doc.Load(path).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(path);
             Reset();
         }
 
@@ -151,7 +168,9 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
         public HtmlNodeNavigator(string path, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(path, detectEncodingFromByteOrderMarks).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(path, detectEncodingFromByteOrderMarks);
             Reset();
         }
 
@@ -162,7 +181,9 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use.</param>
         public HtmlNodeNavigator(string path, Encoding encoding)
         {
-            _doc.Load(path, encoding).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(path, encoding);
             Reset();
         }
 
@@ -174,7 +195,9 @@ namespace HtmlAgilityPackCore
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
         public HtmlNodeNavigator(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
-            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks);
             Reset();
         }
 
@@ -187,13 +210,12 @@ namespace HtmlAgilityPackCore
         /// <param name="buffersize">The minimum buffer size.</param>
         public HtmlNodeNavigator(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
-            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks, buffersize).Wait();
+            _doc = new HtmlDocument();
+            _nametable = new HtmlNameTable();
+            _doc.Load(path, encoding, detectEncodingFromByteOrderMarks, buffersize);
             Reset();
         }
-
-#endregion
-
-#region Properties
+#endif
 
         /// <summary>
         /// Gets the base URI for the current node.
@@ -221,7 +243,7 @@ namespace HtmlAgilityPackCore
         /// <summary>
         /// Gets the current HTML node.
         /// </summary>
-        public HtmlNode CurrentNode
+        public HtmlNodeBase CurrentNode
         {
             get { return _currentnode; }
         }
@@ -236,7 +258,13 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
                 InternalTrace(">" + (_currentnode.Attributes.Count > 0));
 #endif
-                return (_currentnode.Attributes.Count > 0);
+                HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+                if (normalCurrentNode == null)
+                {
+                    return false;
+                }
+
+                return (normalCurrentNode.HasAttributes);
             }
         }
 
@@ -250,7 +278,13 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
                 InternalTrace(">" + (_currentnode.ChildNodes.Count > 0));
 #endif
-                return (_currentnode.ChildNodes.Count > 0);
+                HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+                if (normalCurrentNode == null)
+                {
+                    return false;
+                }
+
+                return (normalCurrentNode.HasChildNodes);
             }
         }
 
@@ -276,12 +310,13 @@ namespace HtmlAgilityPackCore
         {
             get
             {
-                if (_attindex != -1)
+                HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+                if (normalCurrentNode != null && _attindex != -1)
                 {
 #if TRACE_NAVIGATOR
                     InternalTrace("att>" + _currentnode.Attributes[_attindex].Name);
 #endif
-                    return _nametable.GetOrAdd(_currentnode.Attributes[_attindex].Name);
+                    return _nametable.GetOrAdd(normalCurrentNode.Attributes[_attindex].Name);
                 }
 
 #if TRACE_NAVIGATOR
@@ -362,20 +397,20 @@ namespace HtmlAgilityPackCore
                         return XPathNodeType.Text;
 
                     case HtmlNodeType.Element:
-                    {
-                        if (_attindex != -1)
                         {
+                            if (_attindex != -1)
+                            {
 #if TRACE_NAVIGATOR
                             InternalTrace(">" + XPathNodeType.Attribute);
 #endif
-                             return XPathNodeType.Attribute;
-                        }
+                                return XPathNodeType.Attribute;
+                            }
 
 #if TRACE_NAVIGATOR
                         InternalTrace(">" + XPathNodeType.Element);
 #endif
-                         return XPathNodeType.Element;
-                    }
+                            return XPathNodeType.Element;
+                        }
 
                     default:
                         throw new NotImplementedException("Internal error: Unhandled HtmlNodeType: " +
@@ -408,44 +443,24 @@ namespace HtmlAgilityPackCore
             {
 #if TRACE_NAVIGATOR
                 InternalTrace("nt=" + _currentnode.NodeType);
+                InternalTrace(">" + _currentnode.InnerText);
 #endif
-                switch (_currentnode.NodeType)
+
+                if (_currentnode is HtmlDocumentNode)
                 {
-                    case HtmlNodeType.Comment:
-#if TRACE_NAVIGATOR
-                        InternalTrace(">" + ((HtmlCommentNode) _currentnode).Comment);
-#endif
-                        return ((HtmlCommentNode) _currentnode).Comment.ToString();
+                    return string.Empty;
+                }
 
-                    case HtmlNodeType.Document:
-#if TRACE_NAVIGATOR
-                        InternalTrace(">");
-#endif
-                        return "";
-
-                    case HtmlNodeType.Text:
-#if TRACE_NAVIGATOR
-                        InternalTrace(">" + ((HtmlTextNode) _currentnode).Text);
-#endif
-                        return ((HtmlTextNode) _currentnode).Text.ToString();
-
-                    case HtmlNodeType.Element:
-                    {
-                        if (_attindex != -1)
-                        {
+                HtmlElement element = _currentnode as HtmlElement;
+                if (element != null && _attindex != -1)
+                {
 #if TRACE_NAVIGATOR
                             InternalTrace(">" + _currentnode.Attributes[_attindex].Value);
 #endif
-                           return _currentnode.Attributes[_attindex].Value;
-                        }
-
-                        return _currentnode.InnerText.ToString(); // TODO
-                    }
-
-                    default:
-                        throw new NotImplementedException("Internal error: Unhandled HtmlNodeType: " +
-                                                          _currentnode.NodeType);
+                    return element.Attributes[_attindex].Value;
                 }
+
+                return _currentnode.InnerText;
             }
         }
 
@@ -463,10 +478,6 @@ namespace HtmlAgilityPackCore
                 return _nametable.GetOrAdd(string.Empty);
             }
         }
-
-#endregion
-
-#region Public Methods
 
         /// <summary>
         /// Creates a new HtmlNavigator positioned at the same node as this HtmlNavigator.
@@ -491,7 +502,13 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
             InternalTrace("localName=" + localName + ", namespaceURI=" + namespaceURI);
 #endif
-            HtmlAttribute att = _currentnode.Attributes[localName];
+            HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+            if (normalCurrentNode == null)
+            {
+                return null;
+            }
+
+            HtmlAttribute att = normalCurrentNode.Attributes[localName];
             if (att == null)
             {
 #if TRACE_NAVIGATOR
@@ -589,10 +606,16 @@ namespace HtmlAgilityPackCore
         /// <returns>true if the HTML attribute is found, otherwise, false. If false, the position of the navigator does not change.</returns>
         public override bool MoveToAttribute(string localName, string namespaceURI)
         {
+            HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+            if (normalCurrentNode == null)
+            {
+                return false;
+            }
+
 #if TRACE_NAVIGATOR
             InternalTrace("localName=" + localName + ", namespaceURI=" + namespaceURI);
 #endif
-            int index = _currentnode.Attributes.GetAttributeIndex(localName);
+            int index = normalCurrentNode.Attributes.GetAttributeIndex(localName);
             if (index == -1)
             {
 #if TRACE_NAVIGATOR
@@ -664,7 +687,13 @@ namespace HtmlAgilityPackCore
         /// <returns>true if there is a first child node, otherwise false.</returns>
         public override bool MoveToFirstChild()
         {
-            if (!_currentnode.HasChildNodes)
+            HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+            if (normalCurrentNode == null)
+            {
+                return false;
+            }
+
+            if (!normalCurrentNode.HasChildNodes)
             {
 #if TRACE_NAVIGATOR
                 InternalTrace(">false");
@@ -672,7 +701,7 @@ namespace HtmlAgilityPackCore
                 return false;
             }
 
-            _currentnode = _currentnode.ChildNodes[0];
+            _currentnode = normalCurrentNode.ChildNodes[0];
 #if TRACE_NAVIGATOR
             InternalTrace(">true");
 #endif
@@ -703,7 +732,7 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
             InternalTrace("id=" + id);
 #endif
-            HtmlNode node = _doc.GetElementbyId(id);
+            HtmlNodeBase node = _doc.GetElementbyId(id);
             if (node == null)
             {
 #if TRACE_NAVIGATOR
@@ -767,7 +796,13 @@ namespace HtmlAgilityPackCore
 #if TRACE_NAVIGATOR
             InternalTrace(null);
 #endif
-            if (_attindex >= (_currentnode.Attributes.Count - 1))
+            HtmlNode normalCurrentNode = _currentnode as HtmlNode;
+            if (normalCurrentNode == null)
+            {
+                return false;
+            }
+
+            if (_attindex >= (normalCurrentNode.Attributes.Count - 1))
             {
 #if TRACE_NAVIGATOR
                 InternalTrace(">false");
@@ -810,7 +845,7 @@ namespace HtmlAgilityPackCore
                 return false;
             }
 
-            _currentnode = _currentnode.ParentNode;
+            _currentnode = _currentnode.ParentNode as HtmlNodeBase;
 #if TRACE_NAVIGATOR
             InternalTrace(">true");
 #endif
@@ -849,9 +884,6 @@ namespace HtmlAgilityPackCore
 #endif
         }
 
-        #endregion
-
-        #region Internal Methods
 #if TRACE_NAVIGATOR
         [Conditional("TRACE")]
         internal void InternalTrace(object traceValue)
@@ -898,9 +930,6 @@ namespace HtmlAgilityPackCore
             HtmlAgilityPack.Trace.WriteLine(string.Format("oid={0},n={1},a={2},v={3},{4}", GetHashCode(), nodename, _attindex, nodevalue, traceValue), "N!" + name);
         }
 #endif
-        #endregion
-
-        #region Private Methods
 
         private void Reset()
         {
@@ -910,8 +939,5 @@ namespace HtmlAgilityPackCore
             _currentnode = _doc.DocumentNode;
             _attindex = -1;
         }
-
-#endregion
     }
 }
-#endif

@@ -4,13 +4,7 @@ namespace HtmlAgilityPackCore
 {
     internal class HtmlNameTable : XmlNameTable
     {
-        #region Fields
-
         private NameTable _nametable = new NameTable();
-
-        #endregion
-
-        #region Public Methods
 
         public override string Add(string array)
         {
@@ -32,10 +26,6 @@ namespace HtmlAgilityPackCore
             return _nametable.Get(array, offset, length);
         }
 
-        #endregion
-
-        #region Internal Methods
-
         internal string GetOrAdd(string array)
         {
             string s = Get(array);
@@ -46,7 +36,5 @@ namespace HtmlAgilityPackCore
 
             return s;
         }
-
-        #endregion
     }
 }

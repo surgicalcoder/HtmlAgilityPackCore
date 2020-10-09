@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using HtmlAgilityPackCore.Nodes;
 
 namespace HtmlAgilityPackCore
 {
@@ -9,48 +10,32 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class HtmlAttributeCollection : IList<HtmlAttribute>
     {
-        #region Fields
-
         internal Dictionary<string, HtmlAttribute> Hashitems = new Dictionary<string, HtmlAttribute>(StringComparer.OrdinalIgnoreCase);
         private HtmlNode _ownernode;
-        private List<HtmlAttribute> items = new List<HtmlAttribute>();
-
-        #endregion
-
-        #region Constructors
+        internal List<HtmlAttribute> items = new List<HtmlAttribute>();
 
         internal HtmlAttributeCollection(HtmlNode ownernode)
         {
             _ownernode = ownernode;
         }
 
-        #endregion
-
-
-        #region IList<HtmlAttribute> Members
 
         /// <summary>
         /// Gets the number of elements actually contained in the list.
         /// </summary>
-        public int Count
-        {
-            get { return items.Count; }
-        }
+        public int Count => items.Count;
 
         /// <summary>
         /// Gets readonly status of colelction
         /// </summary>
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
         /// <summary>
         /// Gets the attribute at the specified index.
         /// </summary>
         public HtmlAttribute this[int index]
         {
-            get { return items[index]; }
+            get => items[index];
             set
             {
                 var oldValue = items[index];
@@ -63,8 +48,8 @@ namespace HtmlAgilityPackCore
                 }
                 Hashitems[value.Name] = value;
 
-                value._ownernode = _ownernode;
-                _ownernode.SetChanged();
+                value.OwnerNode = _ownernode;
+                _ownernode.IsChanged = true;
             }
         }
 
@@ -92,8 +77,10 @@ namespace HtmlAgilityPackCore
                 {
                     Append(value);
                 }
-
-                this[items.IndexOf(currentValue)] = value;
+                else
+                {
+	                this[items.IndexOf(currentValue)] = value;
+                }
             }
         }
 
@@ -207,10 +194,10 @@ namespace HtmlAgilityPackCore
             }
 
             Hashitems[item.Name] = item;
-            item._ownernode = _ownernode;
+            item.OwnerNode = _ownernode;
             items.Insert(index, item);
 
-            _ownernode.SetChanged();
+            _ownernode.IsChanged = true;
         }
 
         /// <summary>
@@ -233,12 +220,8 @@ namespace HtmlAgilityPackCore
             Hashitems.Remove(att.Name);
             items.RemoveAt(index);
 
-            _ownernode.SetChanged();
+            _ownernode.IsChanged = true;
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>
         /// Inserts the specified attribute as the last attribute in the collection.
@@ -258,10 +241,10 @@ namespace HtmlAgilityPackCore
             }
 
             Hashitems[newAttribute.Name] = newAttribute;
-            newAttribute._ownernode = _ownernode;
+            newAttribute.OwnerNode = _ownernode;
             items.Add(newAttribute);
 
-            _ownernode.SetChanged();
+            _ownernode.IsChanged = true;
             return newAttribute;
         }
 
@@ -272,7 +255,7 @@ namespace HtmlAgilityPackCore
         /// <returns>The appended attribute.</returns>
         public HtmlAttribute Append(string name)
         {
-            HtmlAttribute att = _ownernode._ownerdocument.CreateAttribute(name);
+            HtmlAttribute att = _ownernode.OwnerDocument.CreateAttribute(name);
             return Append(att);
         }
 
@@ -284,7 +267,7 @@ namespace HtmlAgilityPackCore
         /// <returns>The appended attribute.</returns>
         public HtmlAttribute Append(string name, string value)
         {
-            HtmlAttribute att = _ownernode._ownerdocument.CreateAttribute(name, value);
+            HtmlAttribute att = _ownernode.OwnerDocument.CreateAttribute(name, value);
             return Append(att);
         }
 
@@ -364,12 +347,8 @@ namespace HtmlAgilityPackCore
             Hashitems.Clear();
             items.Clear();
 
-            _ownernode.SetChanged();
+            _ownernode.IsChanged = true;
         }
-
-        #endregion
-
-        #region LINQ Methods
 
         /// <summary>
         /// Returns all attributes with specified name. Handles case insentivity
@@ -392,10 +371,6 @@ namespace HtmlAgilityPackCore
         {
             items.Clear();
         }
-
-        #endregion
-
-        #region Internal Methods
 
         /// <summary>
         /// Clears the attribute collection
@@ -437,7 +412,5 @@ namespace HtmlAgilityPackCore
 
             return -1;
         }
-
-        #endregion
     }
 }

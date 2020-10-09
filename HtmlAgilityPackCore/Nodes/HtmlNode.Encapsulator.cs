@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-#if !METRO && !NETSTANDARD1_3
-using System;
+using System.Xml.XPath;
 
-namespace HtmlAgilityPackCore
+namespace HtmlAgilityPackCore.Nodes
 {
     public partial class HtmlNode
     {
@@ -12,14 +14,41 @@ namespace HtmlAgilityPackCore
         /// Fill an object and go through it's properties and fill them too.
         /// </summary>
         /// <typeparam name="T">Type of object to want to fill. It should have atleast one property that defined XPath.</typeparam>
-        /// <param name="htmlDocument">If htmlDocument includes data , leave this parameter null. Else pass your specific htmldocument.</param>
         /// <returns>Returns an object of type T including Encapsulated data.</returns>
-        public T GetEncapsulatedData<T>(HtmlDocument htmlDocument = null)
+        /// <exception cref="ArgumentException">Why it's thrown.</exception>
+        /// <exception cref="ArgumentNullException">Why it's thrown.</exception>
+        /// <exception cref="MissingMethodException">Why it's thrown.</exception>
+        /// <exception cref="MissingXPathException">Why it's thrown.</exception>
+        /// <exception cref="XPathException">Why it's thrown.</exception>
+        /// <exception cref="NodeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="NodeAttributeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="FormatException">Why it's thrown.</exception>                
+        /// <exception cref="Exception">Why it's thrown.</exception>
+        public T GetEncapsulatedData<T>()
         {
-            return (T)GetEncapsulatedData(typeof(T), htmlDocument);
+            return (T)GetEncapsulatedData(typeof(T), null);
         }
 
 
+        /// <summary>
+        /// Fill an object and go through it's properties and fill them too.
+        /// </summary>
+        /// <typeparam name="T">Type of object to want to fill. It should have atleast one property that defined XPath.</typeparam>
+        /// <param name="htmlDocument">If htmlDocument includes data , leave this parameter null. Else pass your specific htmldocument.</param>
+        /// <returns>Returns an object of type T including Encapsulated data.</returns>
+        /// <exception cref="ArgumentException">Why it's thrown.</exception>
+        /// <exception cref="ArgumentNullException">Why it's thrown.</exception>
+        /// <exception cref="MissingMethodException">Why it's thrown.</exception>
+        /// <exception cref="MissingXPathException">Why it's thrown.</exception>
+        /// <exception cref="XPathException">Why it's thrown.</exception>
+        /// <exception cref="NodeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="NodeAttributeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="FormatException">Why it's thrown.</exception>                
+        /// <exception cref="Exception">Why it's thrown.</exception>
+        public T GetEncapsulatedData<T>(HtmlDocument htmlDocument)
+        {
+            return (T)GetEncapsulatedData(typeof(T), htmlDocument);
+        }
 
         /// <summary>
         /// Fill an object and go through it's properties and fill them too.
@@ -27,17 +56,23 @@ namespace HtmlAgilityPackCore
         /// <param name="targetType">Type of object to want to fill. It should have atleast one property that defined XPath.</param>
         /// <param name="htmlDocument">If htmlDocument includes data , leave this parameter null. Else pass your specific htmldocument.</param>
         /// <returns>Returns an object of type targetType including Encapsulated data.</returns>
+        /// <exception cref="ArgumentException">Why it's thrown.</exception>
+        /// <exception cref="ArgumentNullException">Why it's thrown.</exception>
+        /// <exception cref="MissingMethodException">Why it's thrown.</exception>
+        /// <exception cref="MissingXPathException">Why it's thrown.</exception>
+        /// <exception cref="XPathException">Why it's thrown.</exception>
+        /// <exception cref="NodeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="NodeAttributeNotFoundException">Why it's thrown.</exception>
+        /// <exception cref="FormatException">Why it's thrown.</exception>                
+        /// <exception cref="Exception">Why it's thrown.</exception>
         public object GetEncapsulatedData(Type targetType, HtmlDocument htmlDocument = null)
         {
-
-            #region SettingPrerequisite
-
             if (targetType == null)
             {
                 throw new ArgumentNullException("Parameter targetType is null");
             }
 
-            HtmlDocument source = null;
+            HtmlDocument source;
 
             if (htmlDocument == null)
             {
@@ -61,9 +96,6 @@ namespace HtmlAgilityPackCore
                 targetObject = Activator.CreateInstance(targetType);
             }
 
-            #endregion SettingPrerequisite
-
-            #region targetObject_Defined_XPath
             if (targetType.IsDefinedAttribute(typeof(HasXPathAttribute)) == true) // Object has xpath attribute (Defined HasXPath)
             {
 
@@ -84,92 +116,102 @@ namespace HtmlAgilityPackCore
                         XPathAttribute xPathAttribute = (propertyInfo.GetCustomAttributes(typeof(XPathAttribute), false) as IList)[0] as XPathAttribute;
 
 
-                        #region Property_IsNOT_IEnumerable
                         if (propertyInfo.IsIEnumerable() == false) // Property is None-IEnumerable
                         {
 
-                            HtmlNode htmlNode = null;
+                            HtmlElement htmlNode = null;
 
                             // try to fill htmlNode based on XPath given
                             try
                             {
-                                htmlNode = source.DocumentNode.SelectSingleNode(xPathAttribute.XPath);
+                                htmlNode = source.DocumentNode.SelectSingleNode(xPathAttribute.XPath) as HtmlElement;
                             }
-                            catch // if it can not select node based on given xpath
+                            catch (XPathException ex) // if it can not select node based on given xpath
                             {
-                                throw new NodeNotFoundException("Cannot find node with giving XPath to bind to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
-                            }
-
-                            if (htmlNode == null)
-                            {
-                                throw new NodeNotFoundException("Cannot find node with givig XPath to bind to " +
+                                throw new XPathException(ex.Message + " That means you have a syntax error in XPath property of this Property : " +
                                     propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
                             }
-
-
-                            #region Property_Is_HasXPath_UserDefinedClass
-                            // Property is None-IEnumerable HasXPath-user-defined class
-                            if (propertyInfo.PropertyType.IsDefinedAttribute(typeof(HasXPathAttribute)) == true)
+                            catch (Exception ex)
                             {
-                                HtmlDocument innerHtmlDocument = new HtmlDocument();
-
-                                innerHtmlDocument.LoadHtml(htmlNode.InnerHtml).Wait(); // TODO
-
-                                object o = GetEncapsulatedData(propertyInfo.PropertyType, innerHtmlDocument);
-
-                                propertyInfo.SetValue(targetObject, o, null);
+                                throw new NodeNotFoundException("Cannot find node with giving XPath to bind to " +
+                                    propertyInfo.PropertyType.FullName + " " + propertyInfo.Name, ex);
                             }
-                            #endregion Property_Is_HasXPath_UserDefinedClass
 
-                            #region Property_Is_SimpleType
-                            // Property is None-IEnumerable value-type or .Net class or user-defined class.
-                            // AND does not deifned xpath and shouldn't have property that defined xpath.
-                            else
+
+                            if (htmlNode == null) // If Encapsulator could not find Node.
                             {
-                                string result = string.Empty;
-
-                                if (xPathAttribute.AttributeName == null) // It target None-IEnumerable value of HTMLTag 
+                                if (propertyInfo.IsDefined(typeof(SkipNodeNotFoundAttribute), false) == true)
                                 {
-                                    result = Tools.GetNodeValueBasedOnXPathReturnType<string>(htmlNode, xPathAttribute);
+                                    // set default value.
+                                    //throw new Exception("Okey !");
                                 }
-                                else // It target None-IEnumerable attribute of HTMLTag
+                                else
                                 {
-                                    result = htmlNode.GetAttributeValue(xPathAttribute.AttributeName, null);
-                                }
-
-                                if (result == null)
-                                {
-                                    throw new NodeAttributeNotFoundException("Can not find " +
-                                        xPathAttribute.AttributeName + " Attribute in " + htmlNode.Name +
-                                        " related to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
+                                    throw new NodeNotFoundException("Cannot find node with giving XPath to bind to " +
+                                    propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
                                 }
 
-
-                                object resultCastedToTargetPropertyType;
-
-                                try
-                                {
-                                    resultCastedToTargetPropertyType = Convert.ChangeType(result, propertyInfo.PropertyType);
-                                }
-                                catch (FormatException)
-                                {
-                                    throw new FormatException("Can not convert Invalid string to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
-                                }
-                                catch (Exception ex)
-                                {
-                                    throw new Exception("Unhandled Exception : " + ex.Message);
-                                }
-
-
-
-                                propertyInfo.SetValue(targetObject, resultCastedToTargetPropertyType, null);
                             }
-                            #endregion Property_Is_SimpleType
+                            else // if htmlNode is not null (Encapsulator find the Node)
+                            {
+                                // Property is None-IEnumerable HasXPath-user-defined class
+                                if (propertyInfo.PropertyType.IsDefinedAttribute(typeof(HasXPathAttribute)) == true)
+                                {
+                                    HtmlDocument innerHtmlDocument = new HtmlDocument();
+
+                                    innerHtmlDocument.LoadHtml(htmlNode.InnerHtml);
+
+                                    object o = GetEncapsulatedData(propertyInfo.PropertyType, innerHtmlDocument);
+
+                                    propertyInfo.SetValue(targetObject, o, null);
+                                }
+
+                                // Property is None-IEnumerable value-type or .Net class or user-defined class.
+                                // AND does not deifned xpath and shouldn't have property that defined xpath.
+                                else
+                                {
+                                    string result = string.Empty;
+
+                                    if (xPathAttribute.AttributeName == null) // It target value of HTMLTag 
+                                    {
+                                        result = Tools.GetNodeValueBasedOnXPathReturnType<string>(htmlNode, xPathAttribute);
+                                    }
+                                    else // It target attribute of HTMLTag
+                                    {
+                                        result = htmlNode.GetAttributeValue(xPathAttribute.AttributeName, null);
+                                    }
+
+                                    if (result == null)
+                                    {
+                                        throw new NodeAttributeNotFoundException("Can not find " +
+                                            xPathAttribute.AttributeName + " Attribute in " + htmlNode.Name +
+                                            " related to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
+                                    }
+
+
+                                    object resultCastedToTargetPropertyType;
+
+                                    try
+                                    {
+                                        resultCastedToTargetPropertyType = Convert.ChangeType(result, propertyInfo.PropertyType);
+                                    }
+                                    catch (FormatException)
+                                    {
+                                        throw new FormatException("Can not convert Invalid string to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new Exception("Unhandled Exception : " + ex.Message);
+                                    }
+
+
+
+                                    propertyInfo.SetValue(targetObject, resultCastedToTargetPropertyType, null);
+                                }
+                            }
+
                         }
-                        #endregion Property_IsNOT_IEnumerable
 
-
-                        #region Property_Is_IEnumerable
                         else // Property is IEnumerable<T>
                         {
                             IList<Type> T_Types = propertyInfo.GetGenericTypes() as IList<Type>; // Get T type
@@ -194,108 +236,124 @@ namespace HtmlAgilityPackCore
                                 {
                                     nodeCollection = source.DocumentNode.SelectNodes(xPathAttribute.XPath);
                                 }
-                                catch
+                                catch (XPathException ex)
                                 {
-                                    throw new NodeNotFoundException("Cannot find node with givig XPath to bind to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
+                                    throw new XPathException(ex.Message + " That means you have a syntax error in XPath property of this Property : " +
+                                        propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
                                 }
+                                catch (Exception ex)
+                                {
+                                    throw new NodeNotFoundException("Cannot find node with giving XPath to bind to " +
+                                        propertyInfo.PropertyType.FullName + " " + propertyInfo.Name, ex);
+                                }
+
 
                                 if (nodeCollection == null || nodeCollection.Count == 0)
                                 {
-                                    throw new NodeNotFoundException("Cannot find node with givig XPath to bind to " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
-                                }
-
-
-                                IList result = T_Types[0].CreateIListOfType();
-
-                                #region Property_Is_IEnumerable<HasXPath-UserDefinedClass>
-                                if (T_Types[0].IsDefinedAttribute(typeof(HasXPathAttribute)) == true) // T is IEnumerable HasXPath-user-defined class (T type Defined XPath properties)
-                                {
-                                    foreach (HtmlNode node in nodeCollection)
+                                    if (propertyInfo.IsDefined(typeof(SkipNodeNotFoundAttribute), false) == true)
                                     {
-                                        HtmlDocument innerHtmlDocument = new HtmlDocument();
-                                        innerHtmlDocument.LoadHtml(node.InnerHtml).Wait(); // TODO
-
-                                        object o = GetEncapsulatedData(T_Types[0], innerHtmlDocument);
-
-                                        result.Add(o);
+                                        // set default value.
+                                        //throw new Exception("Okey !");
+                                    }
+                                    else
+                                    {
+                                        throw new NodeNotFoundException("Cannot find node with giving XPath to bind to " +
+                                        propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
                                     }
                                 }
-                                #endregion Property_Is_IEnumerable<HasXPath-UserDefinedClass>
-
-                                #region Property_Is_IEnumerable<SimpleClass>
-                                else // T is value-type or .Net class or user-defined class ( without xpath )
+                                else
                                 {
-                                    if (xPathAttribute.AttributeName == null) // It target value
+                                    IList result = T_Types[0].CreateIListOfType();
+
+                                    if (T_Types[0].IsDefinedAttribute(typeof(HasXPathAttribute)) == true) // T is IEnumerable HasXPath-user-defined class (T type Defined XPath properties)
                                     {
-                                        try
+                                        foreach (HtmlNodeBase node in nodeCollection)
                                         {
-                                            result = Tools.GetNodesValuesBasedOnXPathReturnType(nodeCollection, xPathAttribute, T_Types[0]);
-                                        }
-                                        catch (FormatException)
-                                        {
-                                            throw new FormatException("Can not convert Invalid string in node collection to " + T_Types[0].FullName + " " + propertyInfo.Name);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            throw new Exception("Unhandled Exception : " + ex.Message);
+                                            HtmlDocument innerHtmlDocument = new HtmlDocument();
+                                            innerHtmlDocument.LoadHtml(node.InnerHtml);
+
+                                            object o = GetEncapsulatedData(T_Types[0], innerHtmlDocument);
+
+                                            result.Add(o);
                                         }
                                     }
-                                    else // It target attribute
+
+                                    else // T is value-type or .Net class or user-defined class ( without xpath )
                                     {
-                                        foreach (HtmlNode node in nodeCollection)
+                                        if (xPathAttribute.AttributeName == null) // It target value
                                         {
-                                            string nodeAttributeValue = node.GetAttributeValue(xPathAttribute.AttributeName, null);
-                                            if (nodeAttributeValue == null)
-                                            {
-                                                throw new NodeAttributeNotFoundException("Can not find " + xPathAttribute.AttributeName + " Attribute in " + node.Name + " related to " +
-                                                propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
-                                            }
-
-                                            object resultCastedToTargetPropertyType;
-
-
                                             try
                                             {
-                                                resultCastedToTargetPropertyType = Convert.ChangeType(nodeAttributeValue, T_Types[0]);
+                                                result = Tools.GetNodesValuesBasedOnXPathReturnType(nodeCollection, xPathAttribute, T_Types[0]);
                                             }
-                                            catch (FormatException) // if it can not cast result(string) to type of property.
+                                            catch (FormatException)
                                             {
-                                                throw new FormatException("Can not convert Invalid string to " + T_Types[0].FullName + " " + propertyInfo.Name);
+                                                throw new FormatException("Can not convert Invalid string in node collection to " + T_Types[0].FullName + " " + propertyInfo.Name);
                                             }
                                             catch (Exception ex)
                                             {
                                                 throw new Exception("Unhandled Exception : " + ex.Message);
                                             }
+                                        }
+                                        else // It target attribute
+                                        {
+                                            foreach (HtmlNodeBase node in nodeCollection)
+                                            {
+                                                HtmlElement element = node as HtmlElement;
+                                                if (element == null)
+                                                {
+                                                    continue;
+                                                }
+
+                                                string nodeAttributeValue = element.GetAttributeValue(xPathAttribute.AttributeName, null);
+                                                if (nodeAttributeValue == null)
+                                                {
+                                                    throw new NodeAttributeNotFoundException("Can not find " + xPathAttribute.AttributeName + " Attribute in " + node.Name + " related to " +
+                                                    propertyInfo.PropertyType.FullName + " " + propertyInfo.Name);
+                                                }
+
+                                                object resultCastedToTargetPropertyType;
 
 
-                                            result.Add(resultCastedToTargetPropertyType);
+                                                try
+                                                {
+                                                    resultCastedToTargetPropertyType = Convert.ChangeType(nodeAttributeValue, T_Types[0]);
+                                                }
+                                                catch (FormatException) // if it can not cast result(string) to type of property.
+                                                {
+                                                    throw new FormatException("Can not convert Invalid string to " + T_Types[0].FullName + " " + propertyInfo.Name);
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    throw new Exception("Unhandled Exception : " + ex.Message);
+                                                }
+
+
+                                                result.Add(resultCastedToTargetPropertyType);
+                                            }
                                         }
                                     }
-                                }
-                                #endregion Property_Is_IEnumerable<SimpleClass>
 
-                                if (result == null || result.Count == 0)
-                                {
-                                    throw new ApplicationException($"Cannot fill {propertyInfo.PropertyType.FullName} {propertyInfo.Name} because it is null.");
+                                    if (result == null || result.Count == 0)
+                                    {
+                                        throw new Exception("Cannot fill " + propertyInfo.PropertyType.FullName + " " + propertyInfo.Name + " because it is null.");
+                                    }
+
+                                    propertyInfo.SetValue(targetObject, result, null);
                                 }
 
-                                propertyInfo.SetValue(targetObject, result, null);
                             }
                         }
-                        #endregion Property_IsNOT_IEnumerable
                     }
 
                     return targetObject;
                 }
             }
-            #endregion targetObject_Defined_XPath
 
-            #region targetObject_NOTDefined_XPath
             else // Object doesen't have xpath attribute
             {
                 throw new MissingXPathException("Type T must define HasXPath attribute and include properties with XPath attribute.");
             }
-            #endregion targetObject_NOTDefined_XPath
         }
 
 
@@ -352,7 +410,7 @@ namespace HtmlAgilityPackCore
             }
 #endif
 
-            throw new NotImplementedException("Can't Target any platform when checking " + type.FullName + " is a " + attributeType.FullName + " or not.");
+            throw new Exception("Can't Target any platform when checking " + type.FullName + " is a " + attributeType.FullName + " or not.");
         }
 
 
@@ -383,7 +441,7 @@ namespace HtmlAgilityPackCore
 
             return properties.HAPWhere(x => x.IsDefined(typeof(XPathAttribute), false) == true);
 
-            throw new NotImplementedException("Can't Target any platform while retrieving properties defined XPathAttribute of Type type.");
+            throw new Exception("Can't Target any platform while retrieving properties defined XPathAttribute of Type type.");
         }
 
 
@@ -417,7 +475,7 @@ namespace HtmlAgilityPackCore
                 return typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(propertyInfo.PropertyType);
 #endif
 
-                throw new NotImplementedException("Can't Target any platform while checking propertyInfo for being IEnumerable or not.");
+                throw new Exception("Can't Target any platform while checking propertyInfo for being IEnumerable or not.");
             }
         }
 
@@ -444,7 +502,7 @@ namespace HtmlAgilityPackCore
             return propertyInfo.PropertyType.GetTypeInfo().GetGenericArguments();
 #endif
 
-            throw new NotImplementedException("Can't Target any platform while Getting generic types of Property.");
+            throw new Exception("Can't Target any platform while Getting generic types of Property.");
         }
 
 
@@ -475,7 +533,7 @@ namespace HtmlAgilityPackCore
             return type.GetTypeInfo().GetMethod(methodName);
 #endif
 
-            throw new NotImplementedException("Can't Target any platform while getting Method methodName from Type type.");
+            throw new Exception("Can't Target any platform while getting Method methodName from Type type.");
         }
 
 
@@ -501,12 +559,12 @@ namespace HtmlAgilityPackCore
 
 
         /// <summary>
-        /// Returns the part of value of <see cref="HtmlNode"/> you want as .
+        /// Returns the part of value of <see cref="HtmlNodeBase"/> you want as .
         /// </summary>
         /// <param name="htmlNode">A htmlNode instance.</param>
         /// <param name="xPathAttribute">Attribute that includes ReturnType</param>
         /// <returns>String that choosen from HtmlNode as result.</returns>
-        internal static T GetNodeValueBasedOnXPathReturnType<T>(HtmlNode htmlNode, XPathAttribute xPathAttribute)
+        internal static T GetNodeValueBasedOnXPathReturnType<T>(HtmlNodeBase htmlNode, XPathAttribute xPathAttribute)
         {
             if (htmlNode == null)
             {
@@ -542,7 +600,7 @@ namespace HtmlAgilityPackCore
                     }
                     break;
 
-                default: throw new NotImplementedException();
+                default: throw new Exception();
             }
 
             return (T)result;
@@ -550,9 +608,9 @@ namespace HtmlAgilityPackCore
 
 
         /// <summary>
-        /// Returns parts of values of <see cref="HtmlNode"/> you want as <see cref="IList{T}"/>.
+        /// Returns parts of values of <see cref="HtmlNodeBase"/> you want as <see cref="IList{T}"/>.
         /// </summary>
-        /// <param name="htmlNodeCollection"><see cref="HtmlNodeCollection"/> that you want to retrive each <see cref="HtmlNode"/> value.</param>
+        /// <param name="htmlNodeCollection"><see cref="HtmlNodeCollection"/> that you want to retrive each <see cref="HtmlNodeBase"/> value.</param>
         /// <param name="xPathAttribute">A <see cref="XPathAttribute"/> instnce incules <see cref="ReturnType"/>.</param>
         /// <param name="listGenericType">Type of IList generic you want.</param>
         /// <returns></returns>
@@ -576,7 +634,7 @@ namespace HtmlAgilityPackCore
 
                 case ReturnType.InnerHtml:
                     {
-                        foreach (HtmlNode node in htmlNodeCollection)
+                        foreach (HtmlNodeBase node in htmlNodeCollection)
                         {
                             result.Add(Convert.ChangeType(node.InnerHtml, listGenericType));
                         }
@@ -586,7 +644,7 @@ namespace HtmlAgilityPackCore
 
                 case ReturnType.InnerText:
                     {
-                        foreach (HtmlNode node in htmlNodeCollection)
+                        foreach (HtmlNodeBase node in htmlNodeCollection)
                         {
                             result.Add(Convert.ChangeType(node.InnerText, listGenericType));
                         }
@@ -596,7 +654,7 @@ namespace HtmlAgilityPackCore
 
                 case ReturnType.OuterHtml:
                     {
-                        foreach (HtmlNode node in htmlNodeCollection)
+                        foreach (HtmlNodeBase node in htmlNodeCollection)
                         {
                             result.Add(Convert.ChangeType(node.OuterHtml, listGenericType));
                         }
@@ -676,7 +734,7 @@ namespace HtmlAgilityPackCore
             }
 #endif
 
-            throw new NotImplementedException("Can't Target any platform while getting Method methodName from Type type.");
+            throw new Exception("Can't Target any platform while getting Method methodName from Type type.");
 
 
         }
@@ -708,12 +766,23 @@ namespace HtmlAgilityPackCore
 
 
     /// <summary>
-    /// Specify which part of <see cref="HtmlNode"/> is requested.
+    /// Specify which part of <see cref="HtmlNodeBase"/> is requested.
     /// </summary>
     public enum ReturnType
     {
+        /// <summary>
+        /// The text between the start and end tags of the object.        
+        /// </summary>
         InnerText,
+
+        /// <summary>
+        /// The HTML between the start and end tags of the object
+        /// </summary>
         InnerHtml,
+
+        /// <summary>
+        /// The object and its content in HTML
+        /// </summary>
         OuterHtml
     }
 
@@ -730,21 +799,52 @@ namespace HtmlAgilityPackCore
 
 
     /// <summary>
-    /// Includes XPath and <see cref="NodeReturnType"/>. XPath for finding html tags and <see cref="NodeReturnType"/> for specify which part of <see cref="HtmlNode"/> you want to return.
+    /// Includes XPath and <see cref="NodeReturnType"/>. XPath for finding html tags and <see cref="NodeReturnType"/> for specify which part of <see cref="HtmlNodeBase"/> you want to return.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class XPathAttribute : Attribute
     {
+        /// <summary>
+        /// XPath Expression that is used to find related html node.
+        /// </summary>
         public string XPath { get; }
+
+        /// <summary>
+        /// Html Attribute name
+        /// </summary>
         public string AttributeName { get; set; }
+
+        /// <summary>
+        /// The methode of output
+        /// </summary>
         public ReturnType NodeReturnType { get; set; }
 
-        public XPathAttribute(string xpathString, ReturnType nodeReturnType = ReturnType.InnerText)
+        /// <summary>
+        /// Specify Xpath to find related Html Node.
+        /// </summary>
+        /// <param name="xpathString"></param>
+        public XPathAttribute(string xpathString)
+        {
+            XPath = xpathString;
+            NodeReturnType = ReturnType.InnerText;
+        }
+
+        /// <summary>
+        /// Specify Xpath to find related Html Node.
+        /// </summary>
+        /// <param name="xpathString"></param>
+        /// <param name="nodeReturnType">Specify you want the output include html text too.</param>
+        public XPathAttribute(string xpathString, ReturnType nodeReturnType)
         {
             XPath = xpathString;
             NodeReturnType = nodeReturnType;
         }
 
+        /// <summary>
+        /// Specify Xpath and Attribute to find related Html Node and its attribute value.
+        /// </summary>
+        /// <param name="xpathString"></param>
+        /// <param name="attributeName"></param>
         public XPathAttribute(string xpathString, string attributeName)
         {
             XPath = xpathString;
@@ -753,42 +853,90 @@ namespace HtmlAgilityPackCore
     }
 
 
+    /// <summary>
+    /// Tagging a property with this Attribute make Encapsulator to ignore that property if it causes an error.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class SkipNodeNotFoundAttribute : Attribute
+    {
+
+    }
 
 
+
+    /// <summary>
+    /// Exception that often occures when there is no way to bind a XPath to a Html Tag.
+    /// </summary>
     public class NodeNotFoundException : Exception
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public NodeNotFoundException() { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public NodeNotFoundException(string message) : base(message) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="inner"></param>
         public NodeNotFoundException(string message, Exception inner) : base(message, inner) { }
     }
 
 
-
+    /// <summary>
+    /// Exception that often occures when there is no way to bind a XPath to a HtmlTag Attribute.
+    /// </summary>
     public class NodeAttributeNotFoundException : Exception
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public NodeAttributeNotFoundException() { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public NodeAttributeNotFoundException(string message) : base(message) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="inner"></param>
         public NodeAttributeNotFoundException(string message, Exception inner) : base(message, inner) { }
     }
 
 
+    /// <summary>
+    /// Exception that often occures when there is no property that assigned with XPath Property in Class.
+    /// </summary>
     public class MissingXPathException : Exception
     {
+
+        /// <summary>
+        /// 
+        /// </summary>
         public MissingXPathException() { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public MissingXPathException(string message) : base(message) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="inner"></param>
         public MissingXPathException(string message, Exception inner) : base(message, inner) { }
     }
 
 }
-
-#if FX20 
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Method |
-    AttributeTargets.Class | AttributeTargets.Assembly)]
-    public sealed class ExtensionAttribute : Attribute
-    {
-    }
-}
-#endif
-#endif

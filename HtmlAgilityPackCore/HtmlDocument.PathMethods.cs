@@ -1,8 +1,7 @@
-﻿using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-#if !METRO
+﻿
 using System;
+using System.IO;
+using System.Text;
 
 namespace HtmlAgilityPackCore
 {
@@ -12,9 +11,9 @@ namespace HtmlAgilityPackCore
         /// Detects the encoding of an HTML document from a file first, and then loads the file.
         /// </summary>
         /// <param name="path">The complete file path to be read.</param>
-        public async Task DetectEncodingAndLoad(string path)
+        public void DetectEncodingAndLoad(string path)
         {
-           await DetectEncodingAndLoad(path, true);
+            DetectEncodingAndLoad(path, true);
         }
 
         /// <summary>
@@ -22,22 +21,30 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="path">The complete file path to be read. May not be null.</param>
         /// <param name="detectEncoding">true to detect encoding, false otherwise.</param>
-        public async Task DetectEncodingAndLoad(string path, bool detectEncoding)
+        public void DetectEncodingAndLoad(string path, bool detectEncoding)
         {
             if (path == null)
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
-            var enc = detectEncoding ? DetectEncoding(path) : null;
-
-            if (enc == null)
+            Encoding enc;
+            if (detectEncoding)
             {
-                await Load(path);
+                enc = DetectEncoding(path);
             }
             else
             {
-                await Load(path, enc);
+                enc = null;
+            }
+
+            if (enc == null)
+            {
+                Load(path);
+            }
+            else
+            {
+                Load(path, enc);
             }
         }
 
@@ -50,10 +57,14 @@ namespace HtmlAgilityPackCore
         {
             if (path == null)
             {
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
             }
 
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), OptionDefaultStreamEncoding))
+#else
             using (StreamReader sr = new StreamReader(path, OptionDefaultStreamEncoding))
+#endif
             {
                 Encoding encoding = DetectEncoding(sr);
                 return encoding;
@@ -64,14 +75,18 @@ namespace HtmlAgilityPackCore
         /// Loads an HTML document from a file.
         /// </summary>
         /// <param name="path">The complete file path to be read. May not be null.</param>
-        public async Task Load(string path)
+        public void Load(string path)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), OptionDefaultStreamEncoding))
+#else
             using (StreamReader sr = new StreamReader(path, OptionDefaultStreamEncoding))
+#endif
             {
-                await Load(sr);
+                Load(sr);
             }
         }
 
@@ -80,15 +95,18 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="path">The complete file path to be read. May not be null.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
-        public async Task Load(string path, bool detectEncodingFromByteOrderMarks)
+        public void Load(string path, bool detectEncodingFromByteOrderMarks)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
-
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), detectEncodingFromByteOrderMarks))
+#else
             using (StreamReader sr = new StreamReader(path, detectEncodingFromByteOrderMarks))
+#endif
             {
-                await Load(sr);
+                Load(sr);
             }
         }
 
@@ -97,17 +115,21 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="path">The complete file path to be read. May not be null.</param>
         /// <param name="encoding">The character encoding to use. May not be null.</param>
-        public async Task Load(string path, Encoding encoding)
+        public void Load(string path, Encoding encoding)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             if (encoding == null)
-                throw new ArgumentNullException(nameof(encoding));
+                throw new ArgumentNullException("encoding");
 
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), encoding))
+#else
             using (StreamReader sr = new StreamReader(path, encoding))
+#endif
             {
-                await Load(sr);
+                Load(sr);
             }
         }
 
@@ -117,17 +139,21 @@ namespace HtmlAgilityPackCore
         /// <param name="path">The complete file path to be read. May not be null.</param>
         /// <param name="encoding">The character encoding to use. May not be null.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
-        public async Task Load(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
+        public void Load(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             if (encoding == null)
-                throw new ArgumentNullException(nameof(encoding));
+                throw new ArgumentNullException("encoding");
 
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), encoding, detectEncodingFromByteOrderMarks))
+#else
             using (StreamReader sr = new StreamReader(path, encoding, detectEncodingFromByteOrderMarks))
+#endif
             {
-                await Load(sr);
+                Load(sr);
             }
         }
 
@@ -138,17 +164,22 @@ namespace HtmlAgilityPackCore
         /// <param name="encoding">The character encoding to use. May not be null.</param>
         /// <param name="detectEncodingFromByteOrderMarks">Indicates whether to look for byte order marks at the beginning of the file.</param>
         /// <param name="buffersize">The minimum buffer size.</param>
-        public async Task Load(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
+        public void Load(string path, Encoding encoding, bool detectEncodingFromByteOrderMarks, int buffersize)
         {
             if (path == null)
-                throw new ArgumentNullException(nameof(path));
+                throw new ArgumentNullException("path");
 
             if (encoding == null)
-                throw new ArgumentNullException(nameof(encoding));
+                throw new ArgumentNullException("encoding");
 
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamReader sr = new StreamReader(File.OpenRead(path), encoding, detectEncodingFromByteOrderMarks, buffersize))
+
+#else
             using (StreamReader sr = new StreamReader(path, encoding, detectEncodingFromByteOrderMarks, buffersize))
+#endif
             {
-                await Load(sr);
+                Load(sr);
             }
         }
 
@@ -158,7 +189,11 @@ namespace HtmlAgilityPackCore
         /// <param name="filename">The location of the file where you want to save the document.</param>
         public void Save(string filename)
         {
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamWriter sw = new StreamWriter(File.OpenWrite(filename), GetOutEncoding()))
+#else
             using (StreamWriter sw = new StreamWriter(filename, false, GetOutEncoding()))
+#endif
             {
                 Save(sw);
             }
@@ -173,19 +208,21 @@ namespace HtmlAgilityPackCore
         {
             if (filename == null)
             {
-                throw new ArgumentNullException(nameof(filename));
+                throw new ArgumentNullException("filename");
             }
 
             if (encoding == null)
             {
-                throw new ArgumentNullException(nameof(encoding));
+                throw new ArgumentNullException("encoding");
             }
-
+#if NETSTANDARD1_3 || NETSTANDARD1_6
+            using (StreamWriter sw = new StreamWriter(File.OpenWrite(filename), encoding))
+#else
             using (StreamWriter sw = new StreamWriter(filename, false, encoding))
+#endif
             {
                 Save(sw);
             }
         }
     }
 }
-#endif

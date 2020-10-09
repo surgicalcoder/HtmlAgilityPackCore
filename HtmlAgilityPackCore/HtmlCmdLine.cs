@@ -1,27 +1,16 @@
 using System;
 
-#if !NETSTANDARD1_3 && !METRO
 namespace HtmlAgilityPackCore
 {
     internal class HtmlCmdLine
     {
-#region Static Members
-
         internal static bool Help;
-
-#endregion
-
-#region Constructors
 
         static HtmlCmdLine()
         {
             Help = false;
             ParseArgs();
         }
-
-#endregion
-
-#region Internal Methods
 
         internal static string GetOption(string name, string def)
         {
@@ -78,10 +67,6 @@ namespace HtmlAgilityPackCore
 
             return p;
         }
-
-#endregion
-
-#region Private Methods
 
         private static void GetBoolArg(string Arg, string Name, ref bool ArgValue)
         {
@@ -140,8 +125,5 @@ namespace HtmlAgilityPackCore
                 GetBoolArg(args[i], "help", ref Help);
             }
         }
-
-#endregion
     }
 }
-#endif

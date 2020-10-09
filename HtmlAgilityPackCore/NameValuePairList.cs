@@ -5,15 +5,9 @@ namespace HtmlAgilityPackCore
 {
     internal class NameValuePairList
     {
-        #region Fields
-
         internal readonly string Text;
         private List<KeyValuePair<string, string>> _allPairs;
         private Dictionary<string, List<KeyValuePair<string, string>>> _pairsWithName;
-
-        #endregion
-
-        #region Constructors
 
         internal NameValuePairList() :
             this(null)
@@ -28,10 +22,6 @@ namespace HtmlAgilityPackCore
 
             Parse(text);
         }
-
-        #endregion
-
-        #region Internal Methods
 
         internal static string GetNameValuePairsValue(string text, string name)
         {
@@ -57,10 +47,6 @@ namespace HtmlAgilityPackCore
             // return first item
             return al[0].Value.Trim();
         }
-
-        #endregion
-
-        #region Private Methods
 
         private void Parse(string text)
         {
@@ -93,7 +79,5 @@ namespace HtmlAgilityPackCore
                 al.Add(nvp);
             }
         }
-
-        #endregion
     }
 }

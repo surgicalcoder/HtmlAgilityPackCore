@@ -8,13 +8,7 @@ namespace HtmlAgilityPackCore
 
     public class Crc32
     {
-        #region Fields
-
         private uint _crc32;
-
-        #endregion
-
-        #region Static Members
 
         private static uint[] crc_32_tab = // CRC polynomial 0xedb88320 
         {
@@ -63,19 +57,11 @@ namespace HtmlAgilityPackCore
             0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
         };
 
-        #endregion
-
-        #region Properties
-
         internal uint CheckSum
         {
             get { return _crc32; }
             set { _crc32 = value; }
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>
         /// Compute a checksum for a given array of bytes.
@@ -127,10 +113,6 @@ namespace HtmlAgilityPackCore
             return ~oldcrc32;
         }
 
-        #endregion
-
-        #region Internal Methods
-
         internal uint AddToCRC32(int c)
         {
             return AddToCRC32((ushort) c);
@@ -146,15 +128,9 @@ namespace HtmlAgilityPackCore
             return ~_crc32;
         }
 
-        #endregion
-
-        #region Private Methods
-
         private static uint UPDC32(byte octet, uint crc)
         {
             return (crc_32_tab[((crc) ^ (octet)) & 0xff] ^ ((crc) >> 8));
         }
-
-        #endregion
     }
 }

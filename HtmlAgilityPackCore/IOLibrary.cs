@@ -5,8 +5,6 @@ namespace HtmlAgilityPackCore
 {
     internal struct IOLibrary
     {
-#region Internal Methods
-
         internal static void CopyAlways(string source, string target)
         {
             if (!File.Exists(source))
@@ -27,7 +25,6 @@ namespace HtmlAgilityPackCore
         {
         }
 #endif
-#endregion
     }
 }
 

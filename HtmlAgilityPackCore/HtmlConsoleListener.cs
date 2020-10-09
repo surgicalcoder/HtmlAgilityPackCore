@@ -6,8 +6,6 @@ namespace HtmlAgilityPackCore
 {
     internal class HtmlConsoleListener : TraceListener
     {
-#region Public Methods
-
         public override void Write(string Message)
         {
             Write(Message, "");
@@ -27,8 +25,6 @@ namespace HtmlAgilityPackCore
         {
             Write(Message + "\n", Category);
         }
-
-#endregion
     }
 }
 #endif

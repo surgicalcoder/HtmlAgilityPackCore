@@ -1,4 +1,3 @@
-#if !METRO
 namespace HtmlAgilityPackCore
 {
     /// <summary>
@@ -6,23 +5,13 @@ namespace HtmlAgilityPackCore
     /// </summary>
     public class MixedCodeDocumentCodeFragment : MixedCodeDocumentFragment
     {
-        #region Fields
-
         private string _code;
-
-        #endregion
-
-        #region Constructors
 
         internal MixedCodeDocumentCodeFragment(MixedCodeDocument doc)
             :
             base(doc, MixedCodeDocumentFragmentType.Code)
         {
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the fragment code text.
@@ -46,8 +35,5 @@ namespace HtmlAgilityPackCore
             }
             set { _code = value; }
         }
-
-        #endregion
     }
 }
-#endif
