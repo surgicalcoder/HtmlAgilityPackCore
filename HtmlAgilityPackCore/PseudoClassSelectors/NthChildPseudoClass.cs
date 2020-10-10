@@ -1,4 +1,6 @@
-﻿namespace HtmlAgilityPackCore.PseudoClassSelectors
+﻿using HtmlAgilityPackCore.Nodes;
+
+namespace HtmlAgilityPackCore.PseudoClassSelectors
 {
     [PseudoClassName("nth-child")]
     internal class NthChildPseudoClass : PseudoClass

@@ -1,4 +1,6 @@
-﻿namespace HtmlAgilityPackCore.PseudoClassSelectors
+﻿using HtmlAgilityPackCore.Nodes;
+
+namespace HtmlAgilityPackCore.PseudoClassSelectors
 {
     [PseudoClassName("first-child")]
     internal class FirstChildPseudoClass : PseudoClass

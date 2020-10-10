@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.XPath;
+using HtmlAgilityPackCore.Nodes;
 
 #pragma warning disable 0649
 namespace HtmlAgilityPackCore

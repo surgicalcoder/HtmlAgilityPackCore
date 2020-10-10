@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using HtmlAgilityPackCore.Nodes;
 
 namespace HtmlAgilityPackCore.PseudoClassSelectors
 {

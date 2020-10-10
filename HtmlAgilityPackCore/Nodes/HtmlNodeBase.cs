@@ -17,7 +17,7 @@ namespace HtmlAgilityPackCore.Nodes
 
         private string optimizedName;
 
-        private string _outerHtml;
+        private ReadOnlyMemory<char> _outerHtml;
         private int? _innerlength = null;
         private int? _outerlength = null;
         private bool _isChanged = false;
@@ -100,7 +100,7 @@ namespace HtmlAgilityPackCore.Nodes
                 if (optimizedName == null)
                 {
                     if (OriginalName == null)
-                        Name = OwnerDocument.Text.Substring(NameStartIndex, Namelength);
+                        Name = OwnerDocument.Text.Slice(NameStartIndex, Namelength);
 
                     if (OriginalName == null)
                         optimizedName = string.Empty;
@@ -135,7 +135,7 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// Gets or Sets the object and its content in HTML.
         /// </summary>
-        public virtual string OuterHtml
+        public virtual ReadOnlyMemory<char> OuterHtml
         {
             get
             {
@@ -207,7 +207,7 @@ namespace HtmlAgilityPackCore.Nodes
                 }
 
                 InternalInnerText(sb, isDisplayScriptingText);
-                return sb.ToString(); // todo
+                return sb.ToString().AsMemory(); // todo
             }
         }
 
@@ -519,12 +519,14 @@ namespace HtmlAgilityPackCore.Nodes
         /// Saves all the content of the node to a string.
         /// </summary>
         /// <returns>The saved string.</returns>
-        public string WriteContentTo()
+        public ReadOnlyMemory<char> WriteContentTo()
         {
-            StringWriter sw = new StringWriter();
-            WriteContentTo(sw);
-            sw.Flush();
-            return sw.ToString();
+            using (var sw = new StringWriter())
+            {
+                WriteContentTo(sw);
+                sw.Flush();
+                return sw.ToString().AsMemory();
+            }
         }
 
         /// <summary>

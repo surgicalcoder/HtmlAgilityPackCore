@@ -4,6 +4,19 @@ namespace HtmlAgilityPackCore
 {
     public static class Extensions
     {
+
+        public static bool IsNullOrWhiteSpace(this ReadOnlyMemory<char> value)
+        {
+            if (value.IsEmpty) return true;
+            
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (!char.IsWhiteSpace(value.Span[i])) return false;
+            }
+
+            return true;
+        }
+
         public static ReadOnlyMemory<char> Trim(this ReadOnlyMemory<char> s)
         {
             if (s.IsEmpty)

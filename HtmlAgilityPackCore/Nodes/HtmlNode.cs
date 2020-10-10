@@ -168,7 +168,7 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// Gets or Sets the HTML between the start and end tags of the object.
         /// </summary>
-        public override string InnerHtml
+        public override ReadOnlyMemory<char> InnerHtml
         {
             get
             {
@@ -178,29 +178,33 @@ namespace HtmlAgilityPackCore.Nodes
                     return base.InnerHtml;
                 }
 
-                if (!string.IsNullOrWhiteSpace(base.InnerHtml))
+                if (! base.InnerHtml.IsNullOrWhiteSpace())
                 {
                     return base.InnerHtml;
                 }
 
                 if (InnerStartIndex < 0 || InnerLength < 0)
                 {
-                    return string.Empty;
+                    return ReadOnlyMemory<char>.Empty;
                 }
 
-                return OwnerDocument.Text.Substring(InnerStartIndex, InnerLength);
+                return OwnerDocument.Text.Slice(InnerStartIndex, InnerLength);
             }
             set
             {
-                if (string.IsNullOrWhiteSpace(value))
+                if (value.IsEmpty)
+                {
+                    throw new ArgumentException();
+                }
+                if (value.IsNullOrWhiteSpace())
                 {
                     throw new ArgumentNullException();
                 }
 
                 base.InnerHtml = value;
 
-                HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(value);
+                var doc = new HtmlDocument(); // todo
+                doc.LoadHtml(value.ToString());
 
                 RemoveAllChildren();
                 AppendChildren(doc.DocumentNode.ChildNodes);

@@ -67,14 +67,14 @@ namespace HtmlAgilityPackCore
         private bool _onlyDetectEncoding;
         internal Dictionary<int, HtmlNodeBase> Openednodes;
         private List<HtmlParseError> _parseerrors = new List<HtmlParseError>();
-        private string _remainder;
+        private ReadOnlyMemory<char> _remainder;
         private int _remainderOffset;
         private ParseState _state;
         private Encoding _streamencoding;
         private bool _useHtmlEncodingForStream;
 
         /// <summary>The HtmlDocument Text. Careful if you modify it.</summary>
-        public string Text;
+        public ReadOnlyMemory<char> Text;
 
         /// <summary>
         /// Adds Debugging attributes to node. Default is false.
@@ -211,7 +211,7 @@ namespace HtmlAgilityPackCore
 
         /// <summary>Gets the parsed text.</summary>
         /// <value>The parsed text.</value>
-        public string ParsedText
+        public ReadOnlyMemory<char> ParsedText
         {
             get { return Text; }
         }
@@ -397,14 +397,14 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="comment">The comment text. May not be null.</param>
         /// <returns>The new HTML comment node.</returns>
-        public HtmlComment CreateComment(string comment)
+        public HtmlComment CreateComment(ReadOnlyMemory<char> comment)
         {
-            if (comment == null)
+            if (comment.IsNullOrWhiteSpace())
             {
-                throw new ArgumentNullException("comment");
+                throw new ArgumentNullException(nameof(comment));
             }
 
-            HtmlComment c = CreateComment();
+            var c = CreateComment();
             c.Comment = comment;
             return c;
         }
@@ -440,9 +440,9 @@ namespace HtmlAgilityPackCore
         /// </summary>
         /// <param name="text">The text of the node. May not be null.</param>
         /// <returns>The new HTML text node.</returns>
-        public HtmlText CreateTextNode(string text)
+        public HtmlText CreateTextNode(ReadOnlyMemory<char> text)
         {
-            if (text == null)
+            if (text.IsNullOrWhiteSpace())
             {
                 throw new ArgumentNullException("text");
             }
@@ -512,8 +512,7 @@ namespace HtmlAgilityPackCore
                 Nodesid = null;
             }
 
-            StreamReader sr = reader as StreamReader;
-            if (sr != null && !_useHtmlEncodingForStream)
+            if (reader is StreamReader sr && !_useHtmlEncodingForStream)
             {
                 Text = sr.ReadToEnd();
                 _streamencoding = sr.CurrentEncoding;
@@ -723,7 +722,7 @@ namespace HtmlAgilityPackCore
         /// Loads the HTML document from the specified string.
         /// </summary>
         /// <param name="html">String containing the HTML document to load. May not be null.</param>
-        public void LoadHtml(string html)
+        public void LoadHtml(string html) // todo
         {
             if (html == null)
             {
@@ -842,7 +841,7 @@ namespace HtmlAgilityPackCore
                 _lastparentnode = _documentnode;
         }
 
-        private void AddError(HtmlParseErrorCode code, int line, int linePosition, int streamPosition, string sourceText, string reason)
+        private void AddError(HtmlParseErrorCode code, int line, int linePosition, int streamPosition, ReadOnlyMemory<char> sourceText, string reason)
         {
             var err = new HtmlParseError(code, line, linePosition, streamPosition, sourceText, reason);
             _parseerrors.Add(err);
@@ -1516,7 +1515,7 @@ namespace HtmlAgilityPackCore
                         {
                             if (_index < Text.Length)
                             {
-                                if (Text[_index] == '%')
+                                if (Text.Span[_index] == '%')
                                 {
                                     _oldstate = _state;
                                     _state = ParseState.ServerSideCode;
@@ -1532,10 +1531,10 @@ namespace HtmlAgilityPackCore
                         {
                             if (_fullcomment)
                             {
-                                if (((Text[_index - 2] != '-') || (Text[_index - 3] != '-'))
+                                if (((Text.Span[_index - 2] != '-') || (Text.Span[_index - 3] != '-'))
                                     &&
-                                    ((Text[_index - 2] != '!') || (Text[_index - 3] != '-') ||
-                                     (Text[_index - 4] != '-')))
+                                    ((Text.Span[_index - 2] != '!') || (Text.Span[_index - 3] != '-') ||
+                                     (Text.Span[_index - 4] != '-')))
                                 {
                                     continue;
                                 }
@@ -1560,7 +1559,7 @@ namespace HtmlAgilityPackCore
                         {
                             if (_index < Text.Length)
                             {
-                                if (Text[_index] == '>')
+                                if (Text.span[_index] == '>')
                                 {
                                     switch (_oldstate)
                                     {
@@ -1597,26 +1596,23 @@ namespace HtmlAgilityPackCore
                         // check buffer end
                         if ((_currentnode.Namelength + 3) <= (Text.Length - (_index - 1)))
                         {
-                            if (string.Compare(Text.Substring(_index - 1, _currentnode.Namelength + 2),
-                                    "</" + _currentnode.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                            
+                            
+                            if (MemoryExtensions.Equals(Text.Slice(_index - 1, _currentnode.Namelength + 2).Span, $"</{_currentnode.Name}".AsSpan(), StringComparison.OrdinalIgnoreCase))
                             {
-                                int c = Text[_index - 1 + 2 + _currentnode.Name.Length];
+                                int c = Text.Span[_index - 1 + 2 + _currentnode.Name.Length];
+
                                 if ((c == '>') || (IsWhiteSpace(c)))
                                 {
                                     // add the script as a text node
-                                    HtmlNodeBase script = HtmlNodeFactory.Create(this, HtmlNodeType.Text,
-                                        _currentnode.OuterStartIndex +
-                                        _currentnode.OuterLength);
+                                    var script = HtmlNodeFactory.Create(this, HtmlNodeType.Text, _currentnode.OuterStartIndex + _currentnode.OuterLength);
                                     script.OuterLength = _index - 1 - script.OuterStartIndex;
                                     script.StreamPosition = script.OuterStartIndex;
                                     script.Line = _currentnode.Line;
                                     script.LinePosition = _currentnode.LinePosition + _currentnode.Namelength + 2;
 
-                                    HtmlNode normalCurrentNode = _currentnode as HtmlNode;
-                                    if (normalCurrentNode != null)
-                                    {
-                                        normalCurrentNode.AppendChild(script);
-                                    }
+                                    var normalCurrentNode = _currentnode as HtmlNode;
+                                    normalCurrentNode?.AppendChild(script);
 
                                     // https://www.w3schools.com/jsref/prop_node_innertext.asp
                                     // textContent returns the text content of all elements, while innerText returns the content of all elements, except for <script> and <style> elements.
@@ -1721,60 +1717,64 @@ namespace HtmlAgilityPackCore
             bool isImplicitEnd = false;
 
             var parent = _lastparentnode.Name;
-            var nodeName = Text.Substring(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).ToLowerInvariant();
+
+            Span<char> toLower = stackalloc char[_index - _currentnode.NameStartIndex - 1];
+            Text.Slice(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).Span.ToLowerInvariant(toLower);
+            
+            var nodeName = toLower; //Text.Substring(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).ToLowerInvariant();
 
             switch (parent)
             {
                 case "a":
-                    isImplicitEnd = nodeName == "a";
+                    isImplicitEnd = nodeName == "a".AsSpan();
                     break;
                 case "dd":
-                    isImplicitEnd = nodeName == "dt" || nodeName == "dd";
+                    isImplicitEnd = nodeName == "dt".AsSpan() || nodeName == "dd".AsSpan();
                     break;
                 case "dt":
-                    isImplicitEnd = nodeName == "dt" || nodeName == "dd";
+                    isImplicitEnd = nodeName == "dt".AsSpan() || nodeName == "dd".AsSpan();
                     break;
                 case "li":
-                    isImplicitEnd = nodeName == "li";
+                    isImplicitEnd = nodeName == "li".AsSpan();
                     break;
                 case "p":
                     if (DisableBehaviorTagP)
                     {
-                        isImplicitEnd = nodeName == "address"
-                                        || nodeName == "article"
-                                        || nodeName == "aside"
-                                        || nodeName == "blockquote"
-                                        || nodeName == "dir"
-                                        || nodeName == "div"
-                                        || nodeName == "dl"
-                                        || nodeName == "fieldset"
-                                        || nodeName == "footer"
-                                        || nodeName == "form"
-                                        || nodeName == "h1"
-                                        || nodeName == "h2"
-                                        || nodeName == "h3"
-                                        || nodeName == "h4"
-                                        || nodeName == "h5"
-                                        || nodeName == "h6"
-                                        || nodeName == "header"
-                                        || nodeName == "hr"
-                                        || nodeName == "menu"
-                                        || nodeName == "nav"
-                                        || nodeName == "ol"
-                                        || nodeName == "p"
-                                        || nodeName == "pre"
-                                        || nodeName == "section"
-                                        || nodeName == "table"
-                                        || nodeName == "ul";
+                        isImplicitEnd = nodeName == "address".AsSpan()
+                                        || nodeName == "article".AsSpan()
+                                        || nodeName == "aside".AsSpan()
+                                        || nodeName == "blockquote".AsSpan()
+                                        || nodeName == "dir".AsSpan()
+                                        || nodeName == "div".AsSpan()
+                                        || nodeName == "dl".AsSpan()
+                                        || nodeName == "fieldset".AsSpan()
+                                        || nodeName == "footer".AsSpan()
+                                        || nodeName == "form".AsSpan()
+                                        || nodeName == "h1".AsSpan()
+                                        || nodeName == "h2".AsSpan()
+                                        || nodeName == "h3".AsSpan()
+                                        || nodeName == "h4".AsSpan()
+                                        || nodeName == "h5".AsSpan()
+                                        || nodeName == "h6".AsSpan()
+                                        || nodeName == "header".AsSpan()
+                                        || nodeName == "hr".AsSpan()
+                                        || nodeName == "menu".AsSpan()
+                                        || nodeName == "nav".AsSpan()
+                                        || nodeName == "ol".AsSpan()
+                                        || nodeName == "p".AsSpan()
+                                        || nodeName == "pre".AsSpan()
+                                        || nodeName == "section".AsSpan()
+                                        || nodeName == "table".AsSpan()
+                                        || nodeName == "ul".AsSpan();
                     }
                     else
                     {
-                        isImplicitEnd = nodeName == "p";
+                        isImplicitEnd = nodeName == "p".AsSpan();
                     }
 
                     break;
                 case "option":
-                    isImplicitEnd = nodeName == "option";
+                    isImplicitEnd = nodeName == "option".AsSpan();
                     break;
             }
 
@@ -1789,42 +1789,45 @@ namespace HtmlAgilityPackCore
             bool isExplicitEnd = false;
 
             var parent = _lastparentnode.Name;
-            var nodeName = Text.Substring(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).ToLowerInvariant();
+            Span<char> toLower = stackalloc char[_index - _currentnode.NameStartIndex - 1];
+            Text.Slice(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).Span.ToLowerInvariant(toLower);
+
+            var nodeName = toLower; //Text.Substring(_currentnode.NameStartIndex, _index - _currentnode.NameStartIndex - 1).ToLowerInvariant();
 
             switch (parent)
             {
                 case "title":
-                    isExplicitEnd = nodeName == "title";
+                    isExplicitEnd = nodeName == "title".AsSpan();
                     break;
                 case "p":
-                    isExplicitEnd = nodeName == "div";
+                    isExplicitEnd = nodeName == "div".AsSpan();
                     break;
                 case "table":
-                    isExplicitEnd = nodeName == "table";
+                    isExplicitEnd = nodeName == "table".AsSpan();
                     break;
                 case "tr":
-                    isExplicitEnd = nodeName == "tr";
+                    isExplicitEnd = nodeName == "tr".AsSpan();
                     break;
                 case "td":
-                    isExplicitEnd = nodeName == "td" || nodeName == "th" || nodeName == "tr";
+                    isExplicitEnd = nodeName == "td".AsSpan() || nodeName == "th".AsSpan() || nodeName == "tr".AsSpan();
                     break;
                 case "th":
-                    isExplicitEnd = nodeName == "td" || nodeName == "th" || nodeName == "tr";
+                    isExplicitEnd = nodeName == "td".AsSpan() || nodeName == "th".AsSpan() || nodeName == "tr".AsSpan();
                     break;
                 case "h1":
-                    isExplicitEnd = nodeName == "h2" || nodeName == "h3" || nodeName == "h4" || nodeName == "h5";
+                    isExplicitEnd = nodeName == "h2".AsSpan() || nodeName == "h3".AsSpan() || nodeName == "h4".AsSpan() || nodeName == "h5".AsSpan();
                     break;
                 case "h2":
-                    isExplicitEnd = nodeName == "h1" || nodeName == "h3" || nodeName == "h4" || nodeName == "h5";
+                    isExplicitEnd = nodeName == "h1".AsSpan() || nodeName == "h3".AsSpan() || nodeName == "h4".AsSpan() || nodeName == "h5".AsSpan();
                     break;
                 case "h3":
-                    isExplicitEnd = nodeName == "h1" || nodeName == "h2" || nodeName == "h4" || nodeName == "h5";
+                    isExplicitEnd = nodeName == "h1".AsSpan() || nodeName == "h2".AsSpan() || nodeName == "h4".AsSpan() || nodeName == "h5".AsSpan();
                     break;
                 case "h4":
-                    isExplicitEnd = nodeName == "h1" || nodeName == "h2" || nodeName == "h3" || nodeName == "h5";
+                    isExplicitEnd = nodeName == "h1".AsSpan() || nodeName == "h2".AsSpan() || nodeName == "h3".AsSpan() || nodeName == "h5".AsSpan();
                     break;
                 case "h5":
-                    isExplicitEnd = nodeName == "h1" || nodeName == "h2" || nodeName == "h3" || nodeName == "h4";
+                    isExplicitEnd = nodeName == "h1".AsSpan() || nodeName == "h2".AsSpan() || nodeName == "h3".AsSpan() || nodeName == "h4".AsSpan();
                     break;
             }
 
@@ -1954,11 +1957,11 @@ namespace HtmlAgilityPackCore
 
             if ((close) || (!_currentnode.StartTag))
             {
-                if ((OptionStopperNodeName != null) && (_remainder == null) &&
-                    (string.Compare(_currentnode.Name, OptionStopperNodeName, StringComparison.OrdinalIgnoreCase) == 0))
+                if ((OptionStopperNodeName != null) && (_remainder.IsEmpty) &&
+                    (string.Compare(_currentnode.Name, OptionStopperNodeName, StringComparison.OrdinalIgnoreCase) == 0)) // todo
                 {
                     _remainderOffset = index;
-                    _remainder = Text.Substring(_remainderOffset);
+                    _remainder = Text.Slice(_remainderOffset);
                     CloseCurrentNode();
                     return false; // stop parsing
                 }
