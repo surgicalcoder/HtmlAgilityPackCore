@@ -58,11 +58,11 @@ namespace HtmlAgilityPackCore
         private HtmlDocumentNode _documentnode;
         private bool _fullcomment;
         private int _index;
-        internal Dictionary<string, HtmlNodeBase> Lastnodes = new Dictionary<string, HtmlNodeBase>();
+        internal Dictionary<ReadOnlyMemory<char>, HtmlNodeBase> Lastnodes = new Dictionary<ReadOnlyMemory<char>, HtmlNodeBase>();
         private HtmlNode _lastparentnode;
         private int _line;
         private int LinePosition, _maxlineposition;
-        internal Dictionary<string, HtmlNodeBase> Nodesid;
+        internal Dictionary<ReadOnlyMemory<char>, HtmlNodeBase> Nodesid;
         private ParseState _oldstate;
         private bool _onlyDetectEncoding;
         internal Dictionary<int, HtmlNodeBase> Openednodes;
@@ -271,7 +271,7 @@ namespace HtmlAgilityPackCore
         /// Gets the remaining text.
         /// Will always be null if OptionStopperNodeName is null.
         /// </summary>
-        public string Remainder
+        public ReadOnlyMemory<char> Remainder
         {
             get { return _remainder; }
         }
@@ -505,7 +505,7 @@ namespace HtmlAgilityPackCore
 
             if (OptionUseIdAttribute)
             {
-                Nodesid = new Dictionary<string, HtmlNodeBase>(StringComparer.OrdinalIgnoreCase);
+                Nodesid = new Dictionary<ReadOnlyMemory<char>, HtmlNodeBase>(StringComparer.OrdinalIgnoreCase);
             }
             else
             {
@@ -650,7 +650,7 @@ namespace HtmlAgilityPackCore
 
             if (OptionUseIdAttribute)
             {
-                Nodesid = new Dictionary<string, HtmlNodeBase>(StringComparer.OrdinalIgnoreCase);
+                Nodesid = new Dictionary<ReadOnlyMemory<char>, HtmlNodeBase>(StringComparer.OrdinalIgnoreCase);
             }
             else
             {
@@ -815,12 +815,12 @@ namespace HtmlAgilityPackCore
             return null;
         }
 
-        internal void SetIdForNode(HtmlNodeBase node, string id)
+        internal void SetIdForNode(HtmlNodeBase node, ReadOnlyMemory<char> id)
         {
             if (!OptionUseIdAttribute)
                 return;
 
-            if ((Nodesid == null) || (id == null))
+            if ((Nodesid == null) || (id.IsEmpty))
                 return;
 
             if (node == null)
@@ -1104,7 +1104,7 @@ namespace HtmlAgilityPackCore
 
         private bool IsValidTag()
         {
-            bool isValidTag = _c == '<' && _index < Text.Length && (Char.IsLetter(Text[_index]) || Text[_index] == '/' || Text[_index] == '?' || Text[_index] == '!' || Text[_index] == '%');
+            bool isValidTag = _c == '<' && _index < Text.Length && (Char.IsLetter(Text.Span[_index]) || Text.Span[_index] == '/' || Text.Span[_index] == '?' || Text.Span[_index] == '!' || Text.Span[_index] == '%');
             return isValidTag;
         }
 

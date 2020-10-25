@@ -15,7 +15,7 @@ namespace HtmlAgilityPackCore.Nodes
     {
         internal const string DepthLevelExceptionMessage = "The document is too complex to parse";
 
-        private string optimizedName;
+        private ReadOnlyMemory<char> optimizedName;
 
         private ReadOnlyMemory<char> _outerHtml;
         private int? _innerlength = null;
@@ -93,26 +93,34 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// Gets or sets this node's name.
         /// </summary>
-        public virtual string Name
+        public virtual ReadOnlySpan<char> Name
         {
             get
             {
-                if (optimizedName == null)
+                if (optimizedName.IsEmpty)
                 {
-                    if (OriginalName == null)
-                        Name = OwnerDocument.Text.Slice(NameStartIndex, Namelength);
+                    if (OriginalName.IsEmpty)
+                    {
+                        Name = OwnerDocument.Text.Slice(NameStartIndex, Namelength).Span;
+                    }
 
-                    if (OriginalName == null)
-                        optimizedName = string.Empty;
+                    if (OriginalName.IsEmpty)
+                    {
+                        optimizedName = ReadOnlyMemory<char>.Empty;
+                    }
                     else
-                        optimizedName = OriginalName.ToLowerInvariant();
+                    {
+                        Span<char> t = stackalloc char[OriginalName.Length];
+                        OriginalName.Span.ToLowerInvariant(t);
+                        return t.ToArray();
+                    }
                 }
 
-                return optimizedName;
+                return optimizedName.Span;
             }
             internal set
             {
-                OriginalName = value;
+                OriginalName = value.ToArray();
                 optimizedName = null;
             }
         }
@@ -120,7 +128,7 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// The original unaltered name of the tag
         /// </summary>
-        public string OriginalName { get; private set; }
+        public ReadOnlyMemory<char> OriginalName { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="HtmlDocument"/> to which this node belongs.
@@ -145,17 +153,17 @@ namespace HtmlAgilityPackCore.Nodes
                     return _outerHtml;
                 }
 
-                if (!string.IsNullOrWhiteSpace(_outerHtml))
+                if (!_outerHtml.IsNullOrWhiteSpace())
                 {
                     return _outerHtml;
                 }
 
                 if (OuterStartIndex < 0 || OuterLength < 0)
                 {
-                    return string.Empty;
+                    return ReadOnlyMemory<char>.Empty;
                 }
 
-                return OwnerDocument.Text.Substring(OuterStartIndex, OuterLength);
+                return OwnerDocument.Text.Slice(OuterStartIndex, OuterLength);
             }
         }
 
@@ -195,7 +203,7 @@ namespace HtmlAgilityPackCore.Nodes
                 var sb = new StringBuilder();
                 bool isDisplayScriptingText;
 
-                string name = Name;
+                string name = Name.ToString(); //todo
                 if (name != null)
                 {
                     name = name.ToLowerInvariant();
@@ -381,7 +389,7 @@ namespace HtmlAgilityPackCore.Nodes
         public virtual HtmlNodeBase Clone(bool deep)
         {
             HtmlNodeBase node = HtmlNodeFactory.Create(OwnerDocument, NodeType);
-            node.Name = OriginalName;
+            node.Name = OriginalName.Span;
             return node;
         }
 
@@ -547,7 +555,7 @@ namespace HtmlAgilityPackCore.Nodes
         protected void UpdateHtml()
         {
             InnerHtml = WriteContentTo();
-            _outerHtml = WriteTo();
+            _outerHtml = WriteTo().AsMemory(); //todo
             IsChanged = false;
         }
 
@@ -560,7 +568,7 @@ namespace HtmlAgilityPackCore.Nodes
                 {
                     foreach (var openNode in OwnerDocument.Openednodes)
                     {
-                        if ((openNode.Key < OuterStartIndex || openNode.Key > (OuterStartIndex + OuterLength)) && openNode.Value.OriginalName == OriginalName)
+                        if ((openNode.Key < OuterStartIndex || openNode.Key > (OuterStartIndex + OuterLength)) && MemoryExtensions.Equals(openNode.Value.OriginalName, OriginalName))
                         {
                             if (newLast == null && openNode.Value.StartTag)
                             {
@@ -582,7 +590,7 @@ namespace HtmlAgilityPackCore.Nodes
 
             if (newLast != null)
             {
-                OwnerDocument.Lastnodes[newLast.Name] = newLast;
+                OwnerDocument.Lastnodes[newLast.Name.ToString()] = newLast; //todo
             }
         }
 
@@ -598,10 +606,10 @@ namespace HtmlAgilityPackCore.Nodes
             }
         }
 
-        protected virtual string GetRelativeXpath()
+        protected virtual string GetRelativeXpath() //todo
         {
             if (ParentNode == null)
-                return Name;
+                return Name.ToString();
 
             int i = 1;
             foreach (HtmlNodeBase node in ParentNode.ChildNodes)
@@ -614,7 +622,8 @@ namespace HtmlAgilityPackCore.Nodes
                 i++;
             }
 
-            return Name + "[" + i + "]";
+            return $"{Name.ToString()}[{i.ToString()}]"; //todo
+
         }
 
         /// <summary>

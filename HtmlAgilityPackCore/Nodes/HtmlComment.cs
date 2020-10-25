@@ -35,7 +35,7 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// Gets or Sets the object and its content in HTML.
         /// </summary>
-        public override string OuterHtml => $"<!--{Comment}-->";
+        public override ReadOnlyMemory<char> OuterHtml => $"<!--{Comment}-->".AsMemory();
 
         /// <summary>
         /// Creates a duplicate of the node.

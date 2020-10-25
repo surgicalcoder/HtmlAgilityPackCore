@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace HtmlAgilityPackCore.Nodes
 {
@@ -23,7 +24,7 @@ namespace HtmlAgilityPackCore.Nodes
         /// <summary>
         /// Gets or sets this node's name.
         /// </summary>
-        public override string Name
+        public override ReadOnlySpan<char> Name
         {
             get => "html";
             internal set { }
